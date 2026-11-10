@@ -1,0 +1,1484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CMKids Scholarship Exam Portal - AKHMUP School Chathrathody</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Typography: Inter for English UI, Manjari for Malayalam, Amiri for Arabic, Noto Nastaliq Urdu for Urdu -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700&family=Manjari:wght@400;700&family=Noto+Nastaliq+Urdu:wght@400;700&family=Noto+Sans+Devanagari:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .malayalam-font {
+      font-family: 'Manjari', sans-serif;
+    }
+    .arabic-font {
+      font-family: 'Amiri', serif;
+      direction: rtl;
+    }
+    .urdu-font {
+      font-family: 'Noto Nastaliq Urdu', serif;
+      direction: rtl;
+    }
+    .devanagari-font {
+      font-family: 'Noto Sans Devanagari', sans-serif;
+    }
+    .badge-ring {
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col antialiased">
+
+  <!-- TOP APP HEADER -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      
+      <!-- School & Exam Identity -->
+      <div class="flex items-center space-x-3.5">
+        <div class="h-14 w-14 rounded-xl border border-slate-200 bg-white p-1 shadow-sm flex items-center justify-center overflow-hidden shrink-0">
+          <img 
+            src="IMG-20260330-WA0134.jpg" 
+            alt="AKHMUP School Logo" 
+            class="h-full w-full object-contain"
+            onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'bg-blue-900 text-white font-black text-xs h-full w-full flex items-center justify-center text-center p-1 leading-tight\'>AKHM UPS</div>';"
+          />
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h1 class="text-xl sm:text-2xl font-black tracking-tight text-blue-950">
+              CMKids <span class="text-blue-600 font-bold text-lg sm:text-xl">Scholarship Exam</span>
+            </h1>
+            <span class="hidden md:inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+              OFFICIAL
+            </span>
+          </div>
+          <p class="text-xs sm:text-sm font-semibold text-slate-600 tracking-wide">
+            AKHMUP School Chathrathody 
+            <span class="text-slate-400 font-normal ml-1">| Estd. 1982</span>
+          </p>
+        </div>
+      </div>
+
+      <!-- Cloud DB Status & Role Switcher -->
+      <div class="flex items-center space-x-3">
+        <!-- Supabase Cloud Status Indicator -->
+        <div id="cloudStatusBadge" class="hidden sm:inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span>Cloud Connected</span>
+        </div>
+
+        <!-- Role Selector Dropdown -->
+        <div class="bg-slate-100 p-1 rounded-xl flex items-center border border-slate-200">
+          <label for="roleSelector" class="text-xs font-semibold text-slate-500 px-2 hidden sm:inline-block">View As:</label>
+          <select 
+            id="roleSelector" 
+            onchange="switchRole(this.value)" 
+            class="bg-white border-0 text-xs sm:text-sm font-semibold rounded-lg text-slate-800 shadow-sm focus:ring-2 focus:ring-blue-600 px-3 py-1.5 cursor-pointer outline-none"
+          >
+            <option value="student">Student Portal</option>
+            <option value="admin">Admin Dashboard</option>
+            <option value="mentor">Mentor Portal</option>
+          </select>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- MAIN WRAPPER -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- ========================================== -->
+    <!-- 1. ADMIN DASHBOARD VIEW                    -->
+    <!-- ========================================== -->
+    <div id="adminView" class="hidden space-y-8">
+      
+      <!-- Top Overview Bar -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 gap-4">
+        <div>
+          <h2 class="text-xl font-bold text-slate-900">Admin Control Center</h2>
+          <p class="text-sm text-slate-500">Formulate questions, verify Malayalam translations, and publish daily mock exams.</p>
+        </div>
+        <div class="flex items-center space-x-3">
+          <button onclick="switchAdminTab('generate')" id="tabBtnGenerate" class="px-3.5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider bg-blue-600 text-white shadow-sm transition">
+            Create / Generate Exam
+          </button>
+          <button onclick="switchAdminTab('bank')" id="tabBtnBank" class="px-3.5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
+            Question Bank (<span id="repoCount">0</span>)
+          </button>
+          <button onclick="switchAdminTab('students')" id="tabBtnStudents" class="px-3.5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
+            Mentors & Students
+          </button>
+        </div>
+      </div>
+
+      <!-- TAB 1: GENERATE & SCHEDULE -->
+      <div id="adminTabGenerate" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Left Column: Topic & Source Input -->
+        <div class="lg:col-span-5 space-y-6">
+          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <h3 class="text-base font-bold text-slate-900 flex items-center space-x-2 pb-3 border-b border-slate-100">
+              <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              <span>Topic & Question Generator</span>
+            </h3>
+
+            <form id="generatorForm" onsubmit="event.preventDefault(); triggerAIGeneration();" class="mt-4 space-y-4">
+              <!-- Subject Picker (Exact 10 Subjects + Combined) -->
+              <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Subject</label>
+                <select id="genSubject" class="w-full text-sm rounded-xl border-slate-300 focus:border-blue-600 focus:ring-blue-600 px-3.5 py-2.5 bg-slate-50 border font-medium">
+                  <option value="Basic Science">Basic Science (അടിസ്ഥാന ശാസ്ത്രം)</option>
+                  <option value="Social Science">Social Science (സാമൂഹ്യശാസ്ത്രം)</option>
+                  <option value="Mathematics">Mathematics (ഗണിതം)</option>
+                  <option value="Malayalam 1st">Malayalam 1st (മലയാളം ഒന്നാം ഭാഷ)</option>
+                  <option value="Malayalam 2nd">Malayalam 2nd (മലയാളം രണ്ടാം ഭാഷ)</option>
+                  <option value="English">English</option>
+                  <option value="Hindi">Hindi (हिन्दी)</option>
+                  <option value="Urdu">Urdu (اردو)</option>
+                  <option value="Arabic">Arabic (العربية)</option>
+                  <option value="Sanskrit">Sanskrit (संस्कृतम्)</option>
+                  <option value="Combined Mock Exam">Combined Mock Exam (All Subjects Mixed)</option>
+                </select>
+                <p class="text-[11px] text-slate-500 mt-1">Questions will be generated in Malayalam for all subjects except languages.</p>
+              </div>
+
+              <!-- Topic Name -->
+              <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Topic / Chapter Title</label>
+                <input 
+                  type="text" 
+                  id="genTopic" 
+                  placeholder="e.g., ജീവന്റെ തുടിപ്പുകൾ / Photosynthesis" 
+                  required 
+                  class="w-full text-sm rounded-xl border-slate-300 focus:border-blue-600 focus:ring-blue-600 px-3.5 py-2.5 bg-white border font-medium placeholder-slate-400"
+                />
+              </div>
+
+              <!-- Question Count -->
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Number of MCQs</label>
+                  <select id="genCount" class="w-full text-sm rounded-xl border-slate-300 focus:border-blue-600 focus:ring-blue-600 px-3.5 py-2.5 bg-slate-50 border font-medium">
+                    <option value="5">5 Questions</option>
+                    <option value="10" selected>10 Questions</option>
+                    <option value="20">20 Questions</option>
+                    <option value="30">30 Questions</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Exam Duration</label>
+                  <select id="genDuration" class="w-full text-sm rounded-xl border-slate-300 focus:border-blue-600 focus:ring-blue-600 px-3.5 py-2.5 bg-slate-50 border font-medium">
+                    <option value="10">10 Minutes</option>
+                    <option value="15" selected>15 Minutes</option>
+                    <option value="30">30 Minutes</option>
+                    <option value="45">45 Minutes</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Source Syllabus / Raw Study Notes -->
+              <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Source Syllabus / Study Notes (Optional)</label>
+                <textarea 
+                  id="genSourceText" 
+                  rows="4" 
+                  placeholder="Paste textbook summary, notes, or chapter excerpt here for targeted MCQ extraction..." 
+                  class="w-full text-xs rounded-xl border-slate-300 focus:border-blue-600 focus:ring-blue-600 p-3 bg-white border placeholder-slate-400"
+                ></textarea>
+              </div>
+
+              <!-- Simulated File Upload -->
+              <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Upload Notes / Syllabus PDF</label>
+                <input 
+                  type="file" 
+                  id="genFile" 
+                  accept=".pdf,.txt,.doc"
+                  class="block w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+                />
+              </div>
+
+              <!-- Generate Button -->
+              <button 
+                type="submit" 
+                id="btnGenerateQuestions"
+                class="w-full py-3 px-4 rounded-xl font-bold text-sm bg-blue-600 hover:bg-blue-700 text-white shadow-md flex items-center justify-center space-x-2 transition"
+              >
+                <span>Generate Questions & Summary</span>
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Right Column: Verification & Inline Editor -->
+        <div class="lg:col-span-7 space-y-6">
+          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div>
+                <h3 class="text-base font-bold text-slate-900">Verification & Question Editor</h3>
+                <p class="text-xs text-slate-500">Review, modify options, correct keys, and schedule the exam.</p>
+              </div>
+              <span id="editorStatusBadge" class="text-xs px-2.5 py-1 rounded-full font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                Draft Mode
+              </span>
+            </div>
+
+            <!-- Pre-Quiz Summary Points Editor -->
+            <div class="mt-4 p-4 rounded-xl bg-slate-50 border border-slate-200">
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                Student Revision Summary (സംക്ഷിപ്ത പഠനക്കുറിപ്പുകൾ)
+              </label>
+              <p class="text-[11px] text-slate-500 mb-2">These quick points appear to students before starting the test.</p>
+              <textarea 
+                id="editSummaryPoints" 
+                rows="3" 
+                class="w-full text-sm rounded-lg border-slate-300 p-2.5 bg-white border font-normal malayalam-font focus:ring-blue-600"
+              ></textarea>
+            </div>
+
+            <!-- Questions Container -->
+            <div class="mt-6 space-y-4" id="questionsEditorContainer">
+              <div class="text-center py-12 text-slate-400">
+                <p class="text-sm">No questions generated yet. Choose a subject and topic on the left to start.</p>
+              </div>
+            </div>
+
+            <!-- Publish / Schedule Controls -->
+            <div id="scheduleActionBar" class="hidden mt-6 pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div class="flex items-center space-x-2 text-xs text-slate-600">
+                <span class="font-bold">Total MCQs:</span>
+                <span id="verifiedQuestionCount" class="font-bold text-blue-600">0</span>
+              </div>
+              <div class="flex items-center space-x-3 w-full sm:w-auto">
+                <button 
+                  onclick="saveDraftToQuestionBank()" 
+                  class="flex-1 sm:flex-none px-4 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-50 transition"
+                >
+                  Save to Repository
+                </button>
+                <button 
+                  onclick="publishAndScheduleExam()" 
+                  class="flex-1 sm:flex-none px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md transition"
+                >
+                  Approve & Schedule Daily Mock
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- TAB 2: QUESTION BANK & TOPIC REPOSITORY -->
+      <div id="adminTabBank" class="hidden space-y-6">
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+            <div>
+              <h3 class="text-base font-bold text-slate-900">Archived Topics & Question Bank</h3>
+              <p class="text-xs text-slate-500">All uploaded study materials and generated questions are permanently preserved here.</p>
+            </div>
+            <button 
+              onclick="buildCombinedMegaMock()" 
+              class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-sm transition flex items-center space-x-1.5"
+            >
+              <span>Build Combined Multi-Subject Mock Exam</span>
+            </button>
+          </div>
+
+          <!-- Stored Topics Grid -->
+          <div id="questionBankGrid" class="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: MENTOR & STUDENT ALLOCATION -->
+      <div id="adminTabStudents" class="hidden space-y-6">
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <h3 class="text-base font-bold text-slate-900 pb-3 border-b border-slate-100">
+            Registered CMKids Aspirants - AKHMUP School Chathrathody
+          </h3>
+          <div class="overflow-x-auto mt-4">
+            <table class="w-full text-left text-xs text-slate-600">
+              <thead class="bg-slate-50 text-slate-700 uppercase font-bold border-b border-slate-200">
+                <tr>
+                  <th class="p-3">Adm No.</th>
+                  <th class="p-3">Student Name</th>
+                  <th class="p-3">Assigned Mentor</th>
+                  <th class="p-3">Daily Tests Taken</th>
+                  <th class="p-3">Avg Accuracy</th>
+                  <th class="p-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="studentRosterTableBody" class="divide-y divide-slate-100">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 2. STUDENT PORTAL VIEW                     -->
+    <!-- ========================================== -->
+    <div id="studentView" class="space-y-6">
+
+      <!-- Student Banner -->
+      <div class="bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 rounded-3xl p-6 sm:p-8 text-white shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+          <div class="inline-flex items-center space-x-2 bg-blue-700/60 border border-blue-400/30 px-3 py-1 rounded-full text-xs font-bold mb-3">
+            <span>Student Dashboard</span>
+            <span>•</span>
+            <span>Class 7 CMKids Batch</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-black tracking-tight">CMKids Daily Mock Exam Portal</h2>
+          <p class="text-blue-100 text-xs sm:text-sm mt-1 max-w-xl">
+            Read today's revision notes, attend timed scholarship mock tests, and receive immediate answer rationales in Malayalam.
+          </p>
+        </div>
+
+        <div class="bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl flex items-center space-x-4">
+          <div class="h-12 w-12 rounded-xl bg-amber-400 text-blue-950 flex items-center justify-center font-black text-xl">
+            🏆
+          </div>
+          <div>
+            <p class="text-[11px] uppercase tracking-wider text-blue-200 font-bold">Your Performance</p>
+            <p class="text-lg font-black text-white" id="studentAvgScoreDisplay">84% Accuracy</p>
+            <p class="text-[11px] text-blue-200" id="studentAssignedMentorDisplay">Mentor: Smt. Rasia Teacher</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- State A: Available Mock Tests List -->
+      <div id="studentAvailableTestsCard" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <h3 class="text-base font-bold text-slate-900 pb-3 border-b border-slate-100 flex items-center justify-between">
+          <span>Today's Scheduled Mock Exams</span>
+          <span class="text-xs font-semibold text-slate-500">AKHMUP School Chathrathody Exam Cell</span>
+        </h3>
+
+        <div id="studentExamsList" class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <!-- State B: Pre-Quiz Study Summary Modal / Card -->
+      <div id="studentPreQuizSummaryCard" class="hidden bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-lg space-y-6">
+        <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+          <div>
+            <span id="preQuizSubjectBadge" class="text-xs font-bold px-3 py-1 rounded-full bg-blue-100 text-blue-800">
+              Basic Science
+            </span>
+            <h3 id="preQuizTopicTitle" class="text-xl font-black text-slate-900 mt-2">
+              ജീവന്റെ തുടിപ്പുകൾ (Study Notes)
+            </h3>
+          </div>
+          <button 
+            onclick="returnToStudentList()" 
+            class="text-xs font-semibold text-slate-400 hover:text-slate-600"
+          >
+            ← Back to exams
+          </button>
+        </div>
+
+        <div class="bg-amber-50/80 border border-amber-200 rounded-2xl p-5">
+          <h4 class="text-xs font-bold text-amber-900 uppercase tracking-wider flex items-center space-x-1.5 mb-3">
+            <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span>പരീക്ഷയ്ക്ക് മുൻപുള്ള സംക്ഷിപ്ത പഠനക്കുറിപ്പുകൾ (Key Revision Points)</span>
+          </h4>
+          <ul id="preQuizSummaryList" class="space-y-2 text-sm text-slate-800 malayalam-font leading-relaxed">
+            <!-- Dynamically populated -->
+          </ul>
+        </div>
+
+        <div class="flex flex-col sm:flex-row items-center justify-end gap-3 pt-4 border-t border-slate-100">
+          <button 
+            onclick="launchActiveQuiz()" 
+            class="w-full sm:w-auto px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-md transition"
+          >
+            Skip Summary & Start Quiz Directly →
+          </button>
+        </div>
+      </div>
+
+      <!-- State C: Timed Quiz Player Interface -->
+      <div id="studentQuizActiveCard" class="hidden space-y-6">
+        <!-- Sticky Timer & Header -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between sticky top-24 z-30">
+          <div>
+            <h4 id="quizActiveTitle" class="text-sm font-bold text-slate-900">Basic Science Mock Test</h4>
+            <p class="text-xs text-slate-500">Question <span id="currentQNum">1</span> of <span id="totalQNum">10</span></p>
+          </div>
+          
+          <div class="flex items-center space-x-3">
+            <!-- Countdown Timer -->
+            <div class="flex items-center space-x-2 bg-red-50 text-red-700 px-3 py-1.5 rounded-xl border border-red-200 font-mono font-bold text-sm">
+              <svg class="w-4 h-4 text-red-500 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <span id="quizTimer">15:00</span>
+            </div>
+            <button 
+              onclick="submitQuizPrematurely()" 
+              class="px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition"
+            >
+              Submit Exam
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          <!-- Question Canvas (Left 8 Cols) -->
+          <div class="lg:col-span-8 bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
+            
+            <div class="flex items-start justify-between gap-4">
+              <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-700">
+                Q.<span id="displayQuestionIndex">1</span>
+              </span>
+              <button 
+                onclick="toggleMarkForReview()" 
+                id="btnMarkReview"
+                class="text-xs font-semibold text-amber-600 hover:text-amber-700 border border-amber-200 px-2.5 py-1 rounded-lg"
+              >
+                Mark for Review
+              </button>
+            </div>
+
+            <!-- Question Stem in Malayalam/Target Language -->
+            <div id="quizQuestionStem" class="text-base sm:text-lg font-bold text-slate-900 malayalam-font leading-relaxed">
+              <!-- Rendered Question Text -->
+            </div>
+
+            <!-- 4 Multiple Choice Options -->
+            <div id="quizOptionsContainer" class="space-y-3 pt-2">
+              <!-- Rendered Options -->
+            </div>
+
+            <!-- Bottom Navigation -->
+            <div class="flex items-center justify-between pt-6 border-t border-slate-100">
+              <button 
+                onclick="navigateQuestion(-1)" 
+                id="btnPrevQ" 
+                class="px-4 py-2 rounded-xl text-xs font-bold border border-slate-200 text-slate-700 hover:bg-slate-50 transition"
+              >
+                ← Previous
+              </button>
+              <button 
+                onclick="navigateQuestion(1)" 
+                id="btnNextQ" 
+                class="px-5 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition"
+              >
+                Next Question →
+              </button>
+            </div>
+
+          </div>
+
+          <!-- Question Palette (Right 4 Cols) -->
+          <div class="lg:col-span-4 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-600">Question Palette</h4>
+            
+            <div id="quizPaletteGrid" class="grid grid-cols-5 gap-2">
+              <!-- 1, 2, 3.. Palette bubbles -->
+            </div>
+
+            <div class="pt-4 border-t border-slate-100 text-[11px] space-y-1.5 text-slate-500">
+              <div class="flex items-center space-x-2">
+                <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                <span>Answered</span>
+              </div>
+              <div class="flex items-center space-x-2">
+                <span class="w-3 h-3 rounded-full bg-amber-400"></span>
+                <span>Marked for Review</span>
+              </div>
+              <div class="flex items-center space-x-2">
+                <span class="w-3 h-3 rounded-full bg-slate-200"></span>
+                <span>Not Visited</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- State D: Exam Review & Scorecard -->
+      <div id="studentQuizResultsCard" class="hidden space-y-6">
+        <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm text-center space-y-4">
+          <div class="h-16 w-16 mx-auto rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-2xl font-black">
+            ✓
+          </div>
+          <h3 class="text-2xl font-black text-slate-900">Exam Completed!</h3>
+          <p class="text-xs text-slate-500">Your score has been permanently recorded and mapped to your mentor.</p>
+
+          <div class="max-w-md mx-auto grid grid-cols-3 gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-200">
+            <div>
+              <p class="text-[10px] uppercase font-bold text-slate-400">Score</p>
+              <p class="text-xl font-black text-slate-900" id="resScore">8 / 10</p>
+            </div>
+            <div>
+              <p class="text-[10px] uppercase font-bold text-slate-400">Accuracy</p>
+              <p class="text-xl font-black text-emerald-600" id="resAccuracy">80%</p>
+            </div>
+            <div>
+              <p class="text-[10px] uppercase font-bold text-slate-400">Status</p>
+              <p class="text-xl font-black text-blue-600" id="resStatus">Passed</p>
+            </div>
+          </div>
+
+          <button 
+            onclick="returnToStudentList()" 
+            class="px-5 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 transition"
+          >
+            Back to Dashboard
+          </button>
+        </div>
+
+        <!-- Detailed Rationales in Malayalam -->
+        <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+          <h4 class="text-base font-bold text-slate-900">Detailed Question Rationales (ഉത്തര വിശകലനം)</h4>
+          <div id="resultsDetailedQuestionsContainer" class="space-y-4">
+            <!-- Dynamic review questions -->
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 3. MENTOR PORTAL VIEW                      -->
+    <!-- ========================================== -->
+    <div id="mentorView" class="hidden space-y-8">
+      
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 gap-4">
+        <div>
+          <h2 class="text-xl font-bold text-slate-900">Mentor Performance Portal</h2>
+          <p class="text-sm text-slate-500">Track assigned student progress, daily mock test attempts, and subject accuracy.</p>
+        </div>
+        <div class="text-xs font-semibold px-3 py-1.5 rounded-xl bg-blue-50 text-blue-800 border border-blue-200">
+          Mentor: <span class="font-bold">Smt. Rasia Teacher</span> (AKHMUP School)
+        </div>
+      </div>
+
+      <!-- Mentees Overview Roster -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Assigned Mentees</p>
+          <p class="text-2xl font-black text-slate-900 mt-1" id="mentorTotalMenteesCount">4</p>
+          <p class="text-xs text-slate-500 mt-1">Class 7 CMKids aspirants</p>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Today's Attendance Rate</p>
+          <p class="text-2xl font-black text-emerald-600 mt-1">100%</p>
+          <p class="text-xs text-slate-500 mt-1">All mentees completed daily mock</p>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Batch Average Accuracy</p>
+          <p class="text-2xl font-black text-blue-600 mt-1">82.5%</p>
+          <p class="text-xs text-slate-500 mt-1">Top performing in Basic Science</p>
+        </div>
+      </div>
+
+      <!-- Mentee Performance Table -->
+      <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <h3 class="text-base font-bold text-slate-900">Mentee Scorecards & Individual Analytics</h3>
+        
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-600">
+            <thead class="bg-slate-50 text-slate-700 uppercase font-bold border-b border-slate-200">
+              <tr>
+                <th class="p-3">Student Name</th>
+                <th class="p-3">Admission No.</th>
+                <th class="p-3">Latest Exam</th>
+                <th class="p-3">Score</th>
+                <th class="p-3">Subject Accuracy</th>
+                <th class="p-3 text-right">Guidance</th>
+              </tr>
+            </thead>
+            <tbody id="mentorMenteesTableBody" class="divide-y divide-slate-100">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-white border-t border-slate-200 mt-auto py-4 text-center text-xs text-slate-400">
+    <p>CMKids Scholarship Exam Preparation System • AKHMUP School Chathrathody (Estd. 1982)</p>
+  </footer>
+
+  <!-- JAVASCRIPT APPLICATION LOGIC -->
+  <script>
+    // ============================================================
+    // 1. SUPABASE CLIENT INITIALIZATION
+    // ============================================================
+    const SUPABASE_URL = "https://wrenqngsligwimtzbtpd.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_-whw9evphRGWi5h0gRjSSw_jqWUpCXb";
+    
+    let supabaseClient = null;
+    try {
+      if (window.supabase) {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      }
+    } catch (err) {
+      console.warn("Supabase init error, running in local fallback mode:", err);
+    }
+
+    // ============================================================
+    // 2. DEFAULT STATE & MOCK SEED DATA
+    // ============================================================
+    let currentRole = "student";
+    let activeExamInstance = null;
+    let activeQuestionIdx = 0;
+    let studentResponses = {};
+    let markedForReview = {};
+    let timerInterval = null;
+    let timeRemainingSeconds = 0;
+
+    // Default Students Roster
+    let studentsRoster = [
+      { id: "s1", name: "Fathima Hiba", admNo: "7412", mentor: "Smt. Rasia Teacher", testsTaken: 14, accuracy: 88, weakSubject: "Mathematics" },
+      { id: "s2", name: "Mohammed Sinan", admNo: "7425", mentor: "Smt. Rasia Teacher", testsTaken: 12, accuracy: 79, weakSubject: "Urdu" },
+      { id: "s3", name: "Ananya K.P.", admNo: "7431", mentor: "Smt. Rasia Teacher", testsTaken: 15, accuracy: 92, weakSubject: "Arabic" },
+      { id: "s4", name: "Adil Rahman", admNo: "7440", mentor: "Smt. Rasia Teacher", testsTaken: 11, accuracy: 74, weakSubject: "Social Science" }
+    ];
+
+    // Default Stored Question Bank Topics
+    let questionBank = [
+      {
+        id: "bank-1",
+        subject: "Basic Science",
+        topic: "ജീവന്റെ തുടിപ്പുകൾ (Living World)",
+        summaryPoints: [
+          "സസ്യങ്ങൾ പ്രകാശസംശ്ലേഷണത്തിലൂടെ സ്വന്തമായി ആഹാരം നിർമ്മിക്കുന്നു.",
+          "ഇലകളിലെ ഹരിതകമാണ് സൗരോർജ്ജത്തെ ആഗിരണം ചെയ്യുന്നത്.",
+          "ശ്വസന പ്രക്രിയയിൽ സസ്യങ്ങളും ജന്തുക്കളും ഓക്സിജൻ സ്വീകരിക്കുകയും കാർബൺ ഡയോക്സൈഡ് പുറത്തുവിടുകയും ചെയ്യുന്നു."
+        ],
+        questions: [
+          {
+            stem: "സസ്യങ്ങളിൽ പ്രകാശസംശ്ലേഷണത്തിന് ആവശ്യമായ സൗരോർജ്ജം ആഗിരണം ചെയ്യുന്നത് ഏത് ഘടകമാണ്?",
+            options: ["ഹരിതകം (Chlorophyll)", "ജലം", "ഓക്സിജൻ", "വേരുകൾ"],
+            correctIndex: 0,
+            explanation: "ഇലകളിലുള്ള ഹരിതകമാണ് (ക്ലോറോഫിൽ) സൂര്യപ്രകാശത്തെ ആഗിരണം ചെയ്യുന്നത്."
+          },
+          {
+            stem: "താഴെ പറയുന്നവയിൽ സ്വയംപോഷി അല്ലാത്ത ജീവി ഏത്?",
+            options: ["ആൽമരം", "പന്നൽ സസ്യം", "കൂൺ (Mushroom)", "നെല്ല്"],
+            correctIndex: 2,
+            explanation: "കൂൺ ഒരു ഫംഗസ് ആണ്. ഇതിന് ഹരിതകം ഇല്ലാത്തതിനാൽ സ്വന്തമായി ആഹാരം ഉണ്ടാക്കാൻ കഴിയില്ല (മൃതോപജീവി)."
+          }
+        ]
+      },
+      {
+        id: "bank-2",
+        subject: "Mathematics",
+        topic: "സംഖ്യാ പാറ്റേണുകൾ (Number Patterns)",
+        summaryPoints: [
+          "തുടർച്ചയായ ഇരട്ട സംഖ്യകളുടെ വ്യത്യാസം എപ്പോഴും 2 ആയിരിക്കും.",
+          "സമചതുര സംഖ്യകൾ: 1, 4, 9, 16, 25..."
+        ],
+        questions: [
+          {
+            stem: "2, 5, 10, 17, .... അടുത്ത സംഖ്യ ഏത്?",
+            options: ["24", "26", "28", "25"],
+            correctIndex: 1,
+            explanation: "പാറ്റേൺ: 1²+1=2, 2²+1=5, 3²+1=10, 4²+1=17. അതിനാൽ അടുത്ത സംഖ്യ 5²+1 = 26 ആണ്."
+          }
+        ]
+      }
+    ];
+
+    // Scheduled Daily Exams
+    let scheduledExams = [
+      {
+        id: "exam-001",
+        title: "Daily Mock: ജീവന്റെ തുടിപ്പുകൾ",
+        subject: "Basic Science",
+        durationMinutes: 15,
+        summaryPoints: [
+          "സസ്യങ്ങൾ പ്രകാശസംശ്ലേഷണത്തിലൂടെ സ്വന്തമായി ആഹാരം നിർമ്മിക്കുന്നു.",
+          "ഇലകളിലെ ഹരിതകമാണ് സൗരോർജ്ജത്തെ ആഗിരണം ചെയ്യുന്നത്.",
+          "ശ്വസന പ്രക്രിയയിൽ സസ്യങ്ങളും ജന്തുക്കളും ഓക്സിജൻ സ്വീകരിക്കുകയും കാർബൺ ഡയോക്സൈഡ് പുറത്തുവിടുകയും ചെയ്യുന്നു."
+        ],
+        questions: [
+          {
+            stem: "സസ്യങ്ങളിൽ പ്രകാശസംശ്ലേഷണത്തിന് ആവശ്യമായ സൗരോർജ്ജം ആഗിരണം ചെയ്യുന്നത് ഏത് ഘടകമാണ്?",
+            options: ["ഹരിതകം (Chlorophyll)", "ജലം", "ഓക്സിജൻ", "വേരുകൾ"],
+            correctIndex: 0,
+            explanation: "ഇലകളിലുള്ള ഹരിതകമാണ് (ക്ലോറോഫിൽ) സൂര്യപ്രകാശത്തെ ആഗിരണം ചെയ്യുന്നത്."
+          },
+          {
+            stem: "താഴെ പറയുന്നവയിൽ സ്വയംപോഷി അല്ലാത്ത ജീവി ഏത്?",
+            options: ["ആൽമരം", "പന്നൽ സസ്യം", "കൂൺ (Mushroom)", "നെല്ല്"],
+            correctIndex: 2,
+            explanation: "കൂൺ ഒരു ഫംഗസ് ആണ്. ഇതിന് ഹരിതകം ഇല്ലാത്തതിനാൽ സ്വന്തമായി ആഹാരം ഉണ്ടാക്കാൻ കഴിയില്ല (മൃതോപജീവി)."
+          },
+          {
+            stem: "പ്രകാശസംശ്ലേഷണ ഫലമായി സസ്യങ്ങൾ പുറത്തുവിടുന്ന വാതകം ഏതാണ്?",
+            options: ["നൈട്രജൻ", "ഓക്സിജൻ", "കാർബൺ ഡൈ ഓക്സൈഡ്", "ഹൈഡ്രജൻ"],
+            correctIndex: 1,
+            explanation: "പ്രകാശസംശ്ലേഷണത്തിൽ കാർബൺ ഡയോക്സൈഡ് സ്വീകരിച്ച് ഓക്സിജൻ പുറത്തുവിടുന്നു."
+          }
+        ]
+      }
+    ];
+
+    // Temporary Draft In Admin
+    let currentAdminDraft = null;
+
+    // ============================================================
+    // 3. LIFECYCLE & ROLE SWITCHING
+    // ============================================================
+    window.addEventListener("DOMContentLoaded", async () => {
+      await loadCloudData();
+      renderStudentExamsList();
+      renderQuestionBank();
+      renderStudentRosters();
+    });
+
+    function switchRole(role) {
+      currentRole = role;
+      document.getElementById("adminView").classList.add("hidden");
+      document.getElementById("studentView").classList.add("hidden");
+      document.getElementById("mentorView").classList.add("hidden");
+
+      if (role === "admin") {
+        document.getElementById("adminView").classList.remove("hidden");
+        switchAdminTab('generate');
+      } else if (role === "student") {
+        document.getElementById("studentView").classList.remove("hidden");
+        returnToStudentList();
+      } else if (role === "mentor") {
+        document.getElementById("mentorView").classList.remove("hidden");
+        renderMentorRoster();
+      }
+    }
+
+    function switchAdminTab(tab) {
+      document.getElementById("adminTabGenerate").classList.add("hidden");
+      document.getElementById("adminTabBank").classList.add("hidden");
+      document.getElementById("adminTabStudents").classList.add("hidden");
+
+      document.getElementById("tabBtnGenerate").className = "px-3.5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider bg-slate-100 text-slate-700 hover:bg-slate-200 transition";
+      document.getElementById("tabBtnBank").className = "px-3.5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider bg-slate-100 text-slate-700 hover:bg-slate-200 transition";
+      document.getElementById("tabBtnStudents").className = "px-3.5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider bg-slate-100 text-slate-700 hover:bg-slate-200 transition";
+
+      if (tab === "generate") {
+        document.getElementById("adminTabGenerate").classList.remove("hidden");
+        document.getElementById("tabBtnGenerate").className = "px-3.5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider bg-blue-600 text-white shadow-sm transition";
+      } else if (tab === "bank") {
+        document.getElementById("adminTabBank").classList.remove("hidden");
+        document.getElementById("tabBtnBank").className = "px-3.5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider bg-blue-600 text-white shadow-sm transition";
+        renderQuestionBank();
+      } else if (tab === "students") {
+        document.getElementById("adminTabStudents").classList.remove("hidden");
+        document.getElementById("tabBtnStudents").className = "px-3.5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider bg-blue-600 text-white shadow-sm transition";
+        renderStudentRosters();
+      }
+    }
+
+    // ============================================================
+    // 4. SUPABASE CLOUD SYNC HELPERS
+    // ============================================================
+    async function loadCloudData() {
+      if (!supabaseClient) return;
+
+      try {
+        // Load Scheduled Exams
+        const { data: exams, error: errExams } = await supabaseClient
+          .from("scheduled_exams")
+          .select("*")
+          .order("created_at", { ascending: false });
+
+        if (!errExams && exams && exams.length > 0) {
+          scheduledExams = exams.map(e => ({
+            id: e.id,
+            title: e.title,
+            subject: e.subject,
+            durationMinutes: e.duration_minutes,
+            summaryPoints: e.summary_points || [],
+            questions: e.questions || []
+          }));
+        }
+
+        // Load Question Bank
+        const { data: bank, error: errBank } = await supabaseClient
+          .from("question_bank")
+          .select("*")
+          .order("created_at", { ascending: false });
+
+        if (!errBank && bank && bank.length > 0) {
+          questionBank = bank.map(b => ({
+            id: b.id,
+            subject: b.subject,
+            topic: b.topic_name,
+            summaryPoints: b.summary_points || [],
+            questions: b.questions || []
+          }));
+          document.getElementById("repoCount").innerText = questionBank.length;
+        }
+
+      } catch (e) {
+        console.warn("Could not fetch remote tables, using memory cache:", e);
+      }
+    }
+
+    // ============================================================
+    // 5. QUESTION GENERATION LOGIC (MALAYALAM ROUTED)
+    // ============================================================
+    function triggerAIGeneration() {
+      const subject = document.getElementById("genSubject").value;
+      const topic = document.getElementById("genTopic").value.trim();
+      const count = parseInt(document.getElementById("genCount").value);
+      const duration = parseInt(document.getElementById("genDuration").value);
+      const sourceText = document.getElementById("genSourceText").value.trim();
+
+      const btn = document.getElementById("btnGenerateQuestions");
+      btn.innerHTML = `<span class="inline-block animate-spin mr-2">⚙</span> Formulating Malayalam Questions...`;
+      btn.disabled = true;
+
+      setTimeout(() => {
+        const generated = produceSubjectMockData(subject, topic, count);
+        currentAdminDraft = {
+          subject: subject,
+          topic: topic,
+          durationMinutes: duration,
+          summaryPoints: generated.summary,
+          questions: generated.questions
+        };
+
+        renderAdminEditor(currentAdminDraft);
+
+        btn.innerHTML = `<span>Generate Questions & Summary</span>`;
+        btn.disabled = false;
+      }, 700);
+    }
+
+    function produceSubjectMockData(subject, topic, count) {
+      let fontClass = "malayalam-font";
+      let summary = [];
+      let sampleQuestions = [];
+
+      if (subject === "Arabic") {
+        fontClass = "arabic-font";
+        summary = [
+          "القواعد الأساسية: الفعل الماضي والمضارع والأمر.",
+          "الضمائر المنفصلة والمتصلة في اللغة العربية.",
+          "المفردات الشائعة في كتاب الصف السابع."
+        ];
+        sampleQuestions = [
+          {
+            stem: "ما هو الفعل الماضي في الجملة: 'كَتَبَ التِّلْمِيذُ الدَّرْسَ'؟",
+            options: ["كَتَبَ", "التِّلْمِيذُ", "الدَّرْسَ", "يَكْتُبُ"],
+            correctIndex: 0,
+            explanation: "'كَتَبَ' فعل ماضٍ مبني على الفتح."
+          },
+          {
+            stem: "ما هو جمع كلمة 'كِتَاب'؟",
+            options: ["كُتُب", "كَاتِب", "مَكْتَبَة", "كِتَابَان"],
+            correctIndex: 0,
+            explanation: "جمع التكسير لكلمة كتاب هو كُتُب."
+          }
+        ];
+      } else if (subject === "Urdu") {
+        fontClass = "urdu-font";
+        summary = [
+          "اردو قواعد: اسم، فعل اور صفت کی پہچان۔",
+          "واحد اور جمع کے بنیادی اصول۔"
+        ];
+        sampleQuestions = [
+          {
+            stem: "لفظ 'کتاب' کی جمع کیا ہے؟",
+            options: ["کتابیں", "مکتب", "کاتب", "کتان"],
+            correctIndex: 0,
+            explanation: "کتاب کی جمع کتابیں ہے۔"
+          }
+        ];
+      } else if (subject === "Hindi") {
+        fontClass = "devanagari-font";
+        summary = [
+          "संज्ञा, सर्वनाम और विशेषण की पहचान।",
+          "विलोम शब्द और पर्यायवाची शब्द।"
+        ];
+        sampleQuestions = [
+          {
+            stem: "'सूर्य' का पर्यायवाची शब्द क्या है?",
+            options: ["दिनकर", "चंद्र", "वारिद", "पवन"],
+            correctIndex: 0,
+            explanation: "सूर्य का समानार्थी शब्द दिनकर / रवि है।"
+          }
+        ];
+      } else if (subject === "English") {
+        fontClass = "";
+        summary = [
+          "Identifying correct parts of speech and tense forms.",
+          "Prefixes, suffixes, and Upper Primary vocabulary building."
+        ];
+        sampleQuestions = [
+          {
+            stem: "Choose the correct comparative adjective: 'Mount Everest is _______ than Mount Blanc.'",
+            options: ["higher", "highest", "more high", "high"],
+            correctIndex: 0,
+            explanation: "When comparing two objects, the comparative form (-er) is used."
+          }
+        ];
+      } else {
+        // Malayalam 1st, 2nd, Basic Science, Social Science, Maths, Combined
+        fontClass = "malayalam-font";
+        summary = [
+          `${topic} എന്ന പാഠഭാഗത്തിലെ പ്രധാന ആശയങ്ങൾ.`,
+          "കഴിഞ്ഞ വർഷങ്ങളിലെ CMKids സ്കോളർഷിപ്പ് പരീക്ഷകളിലെ പ്രധാന ചോദ്യമാതൃകകൾ.",
+          "സങ്കൽപ്പങ്ങളും അടിസ്ഥാന വസ്തുതകളും ഓർമ്മയിൽ വെക്കുക."
+        ];
+        sampleQuestions = [
+          {
+            stem: `${topic} എന്ന വിഷയവുമായി ബന്ധപ്പെട്ട് ശരിയായ പ്രസ്താവന ഏതാണ്?`,
+            options: ["ഓപ്ഷൻ A - അടിസ്ഥാന ആശയം ശരിയാണ്", "ഓപ്ഷൻ B - തെറ്റായ പ്രസ്താവന", "ഓപ്ഷൻ C - പൂർണ്ണമല്ല", "ഓപ്ഷൻ D - ഇവയൊന്നുമല്ല"],
+            correctIndex: 0,
+            explanation: "പാഠപുസ്തകത്തിലെ നിർവചനപ്രകാരം ഓപ്ഷൻ A ആണ് ശരിയായ ഉത്തരം."
+          },
+          {
+            stem: `താഴെ നൽകിയിരിക്കുന്നവയിൽ ${subject} പാഠഭാഗത്തിന് യോജിച്ചത് ഏത്?`,
+            options: ["പ്രസ്താവന 1 മാത്രം", "പ്രസ്താവന 2 മാത്രം", "1 ഉം 2 ഉം ശരിയാണ്", "രണ്ടും തെറ്റാണ്"],
+            correctIndex: 2,
+            explanation: "പാഠഭാഗത്തെ രണ്ട് വസ്തുതകളും പരസ്പര പൂരകങ്ങളാണ്."
+          }
+        ];
+      }
+
+      // Fill questions up to requested count
+      let finalQuestions = [];
+      for (let i = 0; i < count; i++) {
+        let template = sampleQuestions[i % sampleQuestions.length];
+        finalQuestions.push({
+          stem: `[ചോദ്യം ${i+1}] ${template.stem}`,
+          options: [...template.options],
+          correctIndex: template.correctIndex,
+          explanation: template.explanation,
+          fontClass: fontClass
+        });
+      }
+
+      return { summary: summary, questions: finalQuestions };
+    }
+
+    // ============================================================
+    // 6. ADMIN INLINE VERIFICATION & SCHEDULING
+    // ============================================================
+    function renderAdminEditor(draft) {
+      document.getElementById("editSummaryPoints").value = draft.summaryPoints.join("\n");
+      const container = document.getElementById("questionsEditorContainer");
+      container.innerHTML = "";
+
+      draft.questions.forEach((q, idx) => {
+        const qCard = document.createElement("div");
+        qCard.className = "p-5 rounded-2xl border border-slate-200 bg-slate-50 space-y-3";
+        qCard.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-800">Q.${idx + 1}</span>
+            <button onclick="removeDraftQuestion(${idx})" class="text-xs text-red-500 hover:text-red-700 font-semibold">Delete</button>
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Question Stem</label>
+            <input type="text" value="${escapeHtml(q.stem)}" onchange="updateDraftQuestionStem(${idx}, this.value)" class="w-full text-sm font-semibold rounded-lg border-slate-300 p-2 bg-white border ${q.fontClass || 'malayalam-font'}"/>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+            ${q.options.map((opt, optIdx) => `
+              <div class="flex items-center space-x-2 bg-white p-2 rounded-lg border border-slate-200">
+                <input type="radio" name="draft_correct_${idx}" value="${optIdx}" ${q.correctIndex === optIdx ? 'checked' : ''} onchange="updateDraftCorrectKey(${idx}, ${optIdx})" class="text-blue-600 focus:ring-blue-500"/>
+                <input type="text" value="${escapeHtml(opt)}" onchange="updateDraftOption(${idx}, ${optIdx}, this.value)" class="w-full text-xs border-0 p-0 focus:ring-0 ${q.fontClass || 'malayalam-font'}"/>
+              </div>
+            `).join("")}
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Explanation (മലയാള വിശദീകരണം)</label>
+            <input type="text" value="${escapeHtml(q.explanation || '')}" onchange="updateDraftExplanation(${idx}, this.value)" class="w-full text-xs rounded-lg border-slate-300 p-2 bg-white border malayalam-font text-slate-600"/>
+          </div>
+        `;
+        container.appendChild(qCard);
+      });
+
+      document.getElementById("verifiedQuestionCount").innerText = draft.questions.length;
+      document.getElementById("scheduleActionBar").classList.remove("hidden");
+    }
+
+    function updateDraftQuestionStem(idx, val) { currentAdminDraft.questions[idx].stem = val; }
+    function updateDraftOption(qIdx, optIdx, val) { currentAdminDraft.questions[qIdx].options[optIdx] = val; }
+    function updateDraftCorrectKey(qIdx, optIdx) { currentAdminDraft.questions[qIdx].correctIndex = optIdx; }
+    function updateDraftExplanation(idx, val) { currentAdminDraft.questions[idx].explanation = val; }
+    function removeDraftQuestion(idx) {
+      currentAdminDraft.questions.splice(idx, 1);
+      renderAdminEditor(currentAdminDraft);
+    }
+
+    async function saveDraftToQuestionBank() {
+      if (!currentAdminDraft) return;
+
+      const summaryText = document.getElementById("editSummaryPoints").value.trim();
+      const points = summaryText.split("\n").filter(p => p.trim().length > 0);
+
+      const bankItem = {
+        subject: currentAdminDraft.subject,
+        topic: currentAdminDraft.topic,
+        summaryPoints: points,
+        questions: currentAdminDraft.questions
+      };
+
+      questionBank.unshift(bankItem);
+      document.getElementById("repoCount").innerText = questionBank.length;
+
+      // Sync to Supabase
+      if (supabaseClient) {
+        await supabaseClient.from("question_bank").insert([{
+          subject: bankItem.subject,
+          topic_name: bankItem.topic,
+          summary_points: bankItem.summaryPoints,
+          questions: bankItem.questions
+        }]);
+      }
+
+      alert("Topic and questions preserved into AKHMUP Question Repository!");
+      renderQuestionBank();
+    }
+
+    async function publishAndScheduleExam() {
+      if (!currentAdminDraft || currentAdminDraft.questions.length === 0) {
+        alert("Please generate or add questions first.");
+        return;
+      }
+
+      const summaryText = document.getElementById("editSummaryPoints").value.trim();
+      const points = summaryText.split("\n").filter(p => p.trim().length > 0);
+
+      const newExam = {
+        id: "exam-" + Date.now(),
+        title: `Daily Mock: ${currentAdminDraft.topic}`,
+        subject: currentAdminDraft.subject,
+        durationMinutes: currentAdminDraft.durationMinutes || 15,
+        summaryPoints: points,
+        questions: currentAdminDraft.questions
+      };
+
+      scheduledExams.unshift(newExam);
+
+      // Save to Supabase
+      if (supabaseClient) {
+        await supabaseClient.from("scheduled_exams").insert([{
+          title: newExam.title,
+          subject: newExam.subject,
+          duration_minutes: newExam.durationMinutes,
+          scheduled_at: new Date().toISOString(),
+          summary_points: newExam.summaryPoints,
+          questions: newExam.questions,
+          is_active: true
+        }]);
+      }
+
+      alert("Exam successfully scheduled! Students of AKHMUP School can now attend.");
+      renderStudentExamsList();
+      switchRole("student");
+    }
+
+    // ============================================================
+    // 7. STUDENT EXAM WORKFLOW
+    // ============================================================
+    function renderStudentExamsList() {
+      const container = document.getElementById("studentExamsList");
+      container.innerHTML = "";
+
+      scheduledExams.forEach(exam => {
+        const card = document.createElement("div");
+        card.className = "p-5 rounded-2xl border border-slate-200 bg-white hover:border-blue-300 shadow-sm transition space-y-4";
+        card.innerHTML = `
+          <div class="flex items-start justify-between">
+            <div>
+              <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800">
+                ${exam.subject}
+              </span>
+              <h4 class="text-base font-bold text-slate-900 mt-2">${exam.title}</h4>
+            </div>
+            <span class="text-xs font-bold text-slate-500">${exam.durationMinutes} Mins</span>
+          </div>
+          <div class="flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100">
+            <span>${exam.questions.length} MCQs</span>
+            <button onclick="openPreQuizSummary('${exam.id}')" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold transition">
+              Attend Exam →
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function openPreQuizSummary(examId) {
+      activeExamInstance = scheduledExams.find(e => e.id === examId);
+      if (!activeExamInstance) return;
+
+      document.getElementById("studentAvailableTestsCard").classList.add("hidden");
+      document.getElementById("studentPreQuizSummaryCard").classList.remove("hidden");
+
+      document.getElementById("preQuizSubjectBadge").innerText = activeExamInstance.subject;
+      document.getElementById("preQuizTopicTitle").innerText = activeExamInstance.title;
+
+      const summaryList = document.getElementById("preQuizSummaryList");
+      summaryList.innerHTML = "";
+      if (activeExamInstance.summaryPoints && activeExamInstance.summaryPoints.length > 0) {
+        activeExamInstance.summaryPoints.forEach(pt => {
+          const li = document.createElement("li");
+          li.className = "flex items-start space-x-2";
+          li.innerHTML = `<span class="text-amber-600 font-bold">•</span><span>${pt}</span>`;
+          summaryList.appendChild(li);
+        });
+      } else {
+        summaryList.innerHTML = `<li>ക്വിസ് നേരിട്ട് തുടങ്ങാവുന്നതാണ്. (Directly enter to attend the quiz).</li>`;
+      }
+    }
+
+    function returnToStudentList() {
+      clearInterval(timerInterval);
+      document.getElementById("studentAvailableTestsCard").classList.remove("hidden");
+      document.getElementById("studentPreQuizSummaryCard").classList.add("hidden");
+      document.getElementById("studentQuizActiveCard").classList.add("hidden");
+      document.getElementById("studentQuizResultsCard").classList.add("hidden");
+    }
+
+    function launchActiveQuiz() {
+      document.getElementById("studentPreQuizSummaryCard").classList.add("hidden");
+      document.getElementById("studentQuizActiveCard").classList.remove("hidden");
+
+      studentResponses = {};
+      markedForReview = {};
+      activeQuestionIdx = 0;
+      timeRemainingSeconds = (activeExamInstance.durationMinutes || 15) * 60;
+
+      document.getElementById("quizActiveTitle").innerText = activeExamInstance.title;
+      document.getElementById("totalQNum").innerText = activeExamInstance.questions.length;
+
+      startTimer();
+      renderCurrentQuizQuestion();
+      renderPalette();
+    }
+
+    function startTimer() {
+      clearInterval(timerInterval);
+      updateTimerDisplay();
+      timerInterval = setInterval(() => {
+        timeRemainingSeconds--;
+        updateTimerDisplay();
+        if (timeRemainingSeconds <= 0) {
+          clearInterval(timerInterval);
+          alert("Time is up! Submitting exam automatically.");
+          finishQuizEvaluation();
+        }
+      }, 1000);
+    }
+
+    function updateTimerDisplay() {
+      const mins = Math.floor(timeRemainingSeconds / 60);
+      const secs = timeRemainingSeconds % 60;
+      document.getElementById("quizTimer").innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    function renderCurrentQuizQuestion() {
+      const q = activeExamInstance.questions[activeQuestionIdx];
+      document.getElementById("currentQNum").innerText = activeQuestionIdx + 1;
+      document.getElementById("displayQuestionIndex").innerText = activeQuestionIdx + 1;
+
+      const stemEl = document.getElementById("quizQuestionStem");
+      stemEl.className = `text-base sm:text-lg font-bold text-slate-900 leading-relaxed ${q.fontClass || 'malayalam-font'}`;
+      stemEl.innerText = q.stem;
+
+      // Mark for review button state
+      const btnRev = document.getElementById("btnMarkReview");
+      if (markedForReview[activeQuestionIdx]) {
+        btnRev.className = "text-xs font-bold text-white bg-amber-500 px-2.5 py-1 rounded-lg";
+        btnRev.innerText = "Marked for Review ✓";
+      } else {
+        btnRev.className = "text-xs font-semibold text-amber-600 hover:text-amber-700 border border-amber-200 px-2.5 py-1 rounded-lg";
+        btnRev.innerText = "Mark for Review";
+      }
+
+      // Render 4 Options
+      const optContainer = document.getElementById("quizOptionsContainer");
+      optContainer.innerHTML = "";
+      q.options.forEach((opt, idx) => {
+        const isSelected = studentResponses[activeQuestionIdx] === idx;
+        const optCard = document.createElement("div");
+        optCard.onclick = () => selectQuizAnswer(idx);
+        optCard.className = `p-3.5 rounded-xl border text-sm font-semibold cursor-pointer transition flex items-center space-x-3 ${
+          isSelected 
+            ? 'bg-blue-50 border-blue-600 text-blue-900 ring-1 ring-blue-600' 
+            : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700'
+        }`;
+        optCard.innerHTML = `
+          <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+            isSelected ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-500'
+          }">
+            ${String.fromCharCode(65 + idx)}
+          </span>
+          <span class="${q.fontClass || 'malayalam-font'}">${opt}</span>
+        `;
+        optContainer.appendChild(optCard);
+      });
+
+      // Prev/Next control states
+      document.getElementById("btnPrevQ").disabled = activeQuestionIdx === 0;
+      if (activeQuestionIdx === activeExamInstance.questions.length - 1) {
+        document.getElementById("btnNextQ").innerText = "Submit Exam";
+        document.getElementById("btnNextQ").onclick = submitQuizPrematurely;
+      } else {
+        document.getElementById("btnNextQ").innerText = "Next Question →";
+        document.getElementById("btnNextQ").onclick = () => navigateQuestion(1);
+      }
+
+      renderPalette();
+    }
+
+    function selectQuizAnswer(optIdx) {
+      studentResponses[activeQuestionIdx] = optIdx;
+      renderCurrentQuizQuestion();
+    }
+
+    function toggleMarkForReview() {
+      markedForReview[activeQuestionIdx] = !markedForReview[activeQuestionIdx];
+      renderCurrentQuizQuestion();
+    }
+
+    function navigateQuestion(direction) {
+      const nextIdx = activeQuestionIdx + direction;
+      if (nextIdx >= 0 && nextIdx < activeExamInstance.questions.length) {
+        activeQuestionIdx = nextIdx;
+        renderCurrentQuizQuestion();
+      }
+    }
+
+    function renderPalette() {
+      const palette = document.getElementById("quizPaletteGrid");
+      palette.innerHTML = "";
+
+      activeExamInstance.questions.forEach((_, idx) => {
+        const btn = document.createElement("button");
+        btn.onclick = () => { activeQuestionIdx = idx; renderCurrentQuizQuestion(); };
+
+        let colorClasses = "bg-slate-100 text-slate-700 hover:bg-slate-200";
+        if (studentResponses[idx] !== undefined) {
+          colorClasses = "bg-emerald-500 text-white font-bold";
+        } else if (markedForReview[idx]) {
+          colorClasses = "bg-amber-400 text-slate-900 font-bold";
+        }
+
+        if (idx === activeQuestionIdx) {
+          colorClasses += " ring-2 ring-blue-600 ring-offset-2";
+        }
+
+        btn.className = `h-9 w-9 rounded-xl text-xs font-bold flex items-center justify-center transition ${colorClasses}`;
+        btn.innerText = idx + 1;
+        palette.appendChild(btn);
+      });
+    }
+
+    function submitQuizPrematurely() {
+      if (confirm("Are you sure you want to finish and submit your exam?")) {
+        clearInterval(timerInterval);
+        finishQuizEvaluation();
+      }
+    }
+
+    async function finishQuizEvaluation() {
+      document.getElementById("studentQuizActiveCard").classList.add("hidden");
+      document.getElementById("studentQuizResultsCard").classList.remove("hidden");
+
+      let correctCount = 0;
+      const total = activeExamInstance.questions.length;
+
+      activeExamInstance.questions.forEach((q, idx) => {
+        if (studentResponses[idx] === q.correctIndex) {
+          correctCount++;
+        }
+      });
+
+      const accuracy = Math.round((correctCount / total) * 100);
+
+      document.getElementById("resScore").innerText = `${correctCount} / ${total}`;
+      document.getElementById("resAccuracy").innerText = `${accuracy}%`;
+      document.getElementById("resStatus").innerText = accuracy >= 60 ? "Passed" : "Needs Review";
+
+      // Save Attempt to Supabase
+      if (supabaseClient) {
+        await supabaseClient.from("exam_attempts").insert([{
+          exam_id: activeExamInstance.id.includes("-") && activeExamInstance.id.length > 20 ? activeExamInstance.id : null,
+          score: correctCount,
+          total_questions: total,
+          accuracy: accuracy,
+          answers: studentResponses
+        }]);
+      }
+
+      // Render Detailed Question Rationales
+      const container = document.getElementById("resultsDetailedQuestionsContainer");
+      container.innerHTML = "";
+
+      activeExamInstance.questions.forEach((q, idx) => {
+        const userChoice = studentResponses[idx];
+        const isRight = userChoice === q.correctIndex;
+
+        const card = document.createElement("div");
+        card.className = `p-5 rounded-2xl border ${isRight ? 'border-emerald-200 bg-emerald-50/40' : 'border-red-200 bg-red-50/40'} space-y-2`;
+        card.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold px-2 py-0.5 rounded ${isRight ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">
+              Q.${idx + 1} • ${isRight ? 'Correct' : 'Incorrect'}
+            </span>
+            <span class="text-xs text-slate-500">Correct: Option ${String.fromCharCode(65 + q.correctIndex)}</span>
+          </div>
+          <p class="text-sm font-bold text-slate-900 ${q.fontClass || 'malayalam-font'}">${q.stem}</p>
+          <div class="text-xs space-y-1 text-slate-700 ${q.fontClass || 'malayalam-font'}">
+            <p><span class="font-bold">നിങ്ങൾ നൽകിയ ഉത്തരം:</span> ${userChoice !== undefined ? q.options[userChoice] : 'ഉത്തരം നൽകിയില്ല (Unanswered)'}</p>
+            <p><span class="font-bold text-emerald-700">ശരിയായ ഉത്തരം:</span> ${q.options[q.correctIndex]}</p>
+          </div>
+          ${q.explanation ? `<div class="p-3 bg-white rounded-xl border border-slate-200 text-xs text-slate-600 malayalam-font"><span class="font-bold text-slate-800">വിശദീകരണം:</span> ${q.explanation}</div>` : ''}
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // ============================================================
+    // 8. QUESTION BANK & MEGA COMBINED MOCK
+    // ============================================================
+    function renderQuestionBank() {
+      const grid = document.getElementById("questionBankGrid");
+      grid.innerHTML = "";
+
+      questionBank.forEach((item, idx) => {
+        const card = document.createElement("div");
+        card.className = "p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-2";
+        card.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-800">${item.subject}</span>
+            <span class="text-[11px] text-slate-500 font-semibold">${item.questions.length} Questions</span>
+          </div>
+          <h4 class="text-sm font-bold text-slate-900">${item.topic}</h4>
+          <p class="text-xs text-slate-500">${item.summaryPoints ? item.summaryPoints.length : 0} Summary Points</p>
+          <button onclick="scheduleFromRepo(${idx})" class="w-full mt-2 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition">
+            Schedule Daily Exam
+          </button>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function scheduleFromRepo(idx) {
+      const item = questionBank[idx];
+      currentAdminDraft = {
+        subject: item.subject,
+        topic: item.topic,
+        durationMinutes: 15,
+        summaryPoints: item.summaryPoints || [],
+        questions: item.questions || []
+      };
+      switchAdminTab("generate");
+      renderAdminEditor(currentAdminDraft);
+    }
+
+    function buildCombinedMegaMock() {
+      if (questionBank.length === 0) {
+        alert("Please add some topics to the repository first.");
+        return;
+      }
+
+      let combinedQuestions = [];
+      let combinedSummary = [
+        "CMKids Comprehensive Mega Mock Exam combining all subjects.",
+        "Maintain balance between science, mathematics, social studies, and language papers."
+      ];
+
+      questionBank.forEach(b => {
+        combinedQuestions.push(...b.questions);
+      });
+
+      currentAdminDraft = {
+        subject: "Combined Mock Exam",
+        topic: "All Subjects Mega Mock (എല്ലാ വിഷയങ്ങളും ചേർത്തുള്ള മോഡൽ പരീക്ഷ)",
+        durationMinutes: 30,
+        summaryPoints: combinedSummary,
+        questions: combinedQuestions
+      };
+
+      switchAdminTab("generate");
+      renderAdminEditor(currentAdminDraft);
+    }
+
+    // ============================================================
+    // 9. MENTOR & STUDENT ROSTER VIEWS
+    // ============================================================
+    function renderStudentRosters() {
+      const tbody = document.getElementById("studentRosterTableBody");
+      tbody.innerHTML = "";
+
+      studentsRoster.forEach(s => {
+        const tr = document.createElement("tr");
+        tr.className = "hover:bg-slate-50";
+        tr.innerHTML = `
+          <td class="p-3 font-mono font-bold">${s.admNo}</td>
+          <td class="p-3 font-semibold text-slate-900">${s.name}</td>
+          <td class="p-3">${s.mentor}</td>
+          <td class="p-3">${s.testsTaken} Tests</td>
+          <td class="p-3 font-bold text-emerald-600">${s.accuracy}%</td>
+          <td class="p-3 text-right">
+            <button onclick="alert('Mentor re-assignment dialog')" class="text-xs text-blue-600 hover:underline">Reassign Mentor</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderMentorRoster() {
+      const tbody = document.getElementById("mentorMenteesTableBody");
+      tbody.innerHTML = "";
+
+      studentsRoster.forEach(s => {
+        const tr = document.createElement("tr");
+        tr.className = "hover:bg-slate-50";
+        tr.innerHTML = `
+          <td class="p-3 font-semibold text-slate-900">${s.name}</td>
+          <td class="p-3 font-mono">${s.admNo}</td>
+          <td class="p-3">Daily Mock: ജീവന്റെ തുടിപ്പുകൾ</td>
+          <td class="p-3 font-bold text-slate-900">8 / 10</td>
+          <td class="p-3">
+            <span class="font-bold text-emerald-600">${s.accuracy}%</span>
+            <span class="text-[10px] text-red-500 ml-1">(${s.weakSubject})</span>
+          </td>
+          <td class="p-3 text-right">
+            <button onclick="prompt('Send study guidance note to ' + '${s.name}' + ':')" class="px-3 py-1 rounded bg-blue-50 text-blue-700 hover:bg-blue-100 font-bold text-xs">
+              Feedback
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function escapeHtml(text) {
+      if (!text) return "";
+      return text.replace(/"/g, "&quot;");
+    }
+  </script>
+</body>
+</html>
