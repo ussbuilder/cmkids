@@ -1,0 +1,1941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CMKids Scholarship Exam - AKHMUP School Chathrathody</title>
+  
+  <!-- Fonts: Inter for Clean English UI + Native Malayalam & Language typography for Question Content -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Manjari:wght@400;700&family=Amiri:wght@400;700&family=Noto+Nastaliq+Urdu:wght@400;700&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            malayalam: ['Manjari', 'sans-serif'],
+            arabic: ['Amiri', 'serif'],
+            urdu: ['Noto Nastaliq Urdu', 'serif'],
+            devanagari: ['Noto Sans Devanagari', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+  <style>
+    /* Question text styling for vernacular scripts */
+    .font-vernacular {
+      font-family: 'Manjari', sans-serif;
+      line-height: 1.7;
+    }
+    .font-arabic-text {
+      font-family: 'Amiri', serif;
+      direction: rtl;
+      font-size: 1.25rem;
+      line-height: 2;
+    }
+    .font-urdu-text {
+      font-family: 'Noto Nastaliq Urdu', serif;
+      direction: rtl;
+      font-size: 1.2rem;
+      line-height: 2.2;
+    }
+    .font-devanagari-text {
+      font-family: 'Noto Sans Devanagari', sans-serif;
+      line-height: 1.7;
+    }
+    
+    /* Custom scrollbars */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  </style>
+</head>
+
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col antialiased">
+
+  <!-- ================= TOP NAVIGATION / ROLE SWITCHER ================= -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        
+        <!-- Brand Identity with School Logo in Corner -->
+        <div class="flex items-center gap-3">
+          <div class="relative group cursor-pointer flex-shrink-0" title="AKHMUP School Chathrathody Crest">
+            <img 
+              id="school-logo-img"
+              src="IMG-20260330-WA0134.jpg" 
+              alt="AKHMUP School Logo" 
+              class="w-11 h-11 object-contain rounded-xl border border-slate-200 p-0.5 bg-white shadow-xs transition duration-200 group-hover:scale-105"
+              onerror="this.onerror=null; this.src='https://placehold.co/88x88/1e3a8a/ffffff?text=AKHMUP';"
+            />
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-extrabold text-base sm:text-lg text-slate-900 tracking-tight">CMKids Scholarship Exam</span>
+              <span class="text-[10px] bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded-full border border-blue-200 hidden sm:inline-block">EXCLUSIVE</span>
+            </div>
+            <p class="text-xs font-semibold text-brand-700 tracking-wide flex items-center gap-1.5">
+              <span>AKHMUP School Chathrathody</span>
+              <span class="text-slate-400 font-normal hidden md:inline">• Estd. 1982</span>
+            </p>
+          </div>
+        </div>
+
+        <!-- Role Switcher & User Profile (All in English) -->
+        <div class="flex items-center gap-3">
+          <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-medium">
+            <span class="text-slate-500 px-2 py-1 flex items-center gap-1 font-semibold">
+              <i class="ph-bold ph-user-switch"></i>
+              <span class="hidden md:inline">View Role:</span>
+            </span>
+            <button onclick="switchRole('admin')" id="role-btn-admin" class="role-btn px-3 py-1.5 rounded-lg transition font-semibold">
+              Admin
+            </button>
+            <button onclick="switchRole('student')" id="role-btn-student" class="role-btn px-3 py-1.5 rounded-lg transition font-semibold">
+              Student
+            </button>
+            <button onclick="switchRole('mentor')" id="role-btn-mentor" class="role-btn px-3 py-1.5 rounded-lg transition font-semibold">
+              Mentor
+            </button>
+          </div>
+
+          <!-- Active User Badge -->
+          <div class="hidden lg:flex items-center gap-2 pl-3 border-l border-slate-200">
+            <img id="user-avatar" src="https://placehold.co/40x40/1e3a8a/ffffff?text=AD" alt="User Avatar" class="w-8 h-8 rounded-full border border-slate-300">
+            <div class="text-left">
+              <div id="user-display-name" class="text-xs font-bold text-slate-800 leading-tight">Exam Coordinator</div>
+              <div id="user-display-role" class="text-[11px] text-brand-700 font-medium">Chief Administrator</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= NOTIFICATION TOAST CONTAINER ================= -->
+  <div id="toast-container" class="fixed top-20 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- ================= MAIN CONTENT ROOT ================= -->
+  <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full">
+
+    <!-- ======================================================== -->
+    <!-- SECTION 1: ADMIN DASHBOARD (ENGLISH UI)                   -->
+    <!-- ======================================================== -->
+    <div id="view-admin" class="role-view space-y-6">
+      
+      <!-- Admin Metric Counters -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-blue-50 text-brand-600 flex items-center justify-center text-2xl font-bold">
+            <i class="ph-bold ph-student"></i>
+          </div>
+          <div>
+            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Enrolled Candidates</p>
+            <h3 class="text-2xl font-black text-slate-900" id="stat-total-students">48</h3>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-2xl font-bold">
+            <i class="ph-bold ph-chalkboard-teacher"></i>
+          </div>
+          <div>
+            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Assigned Mentors</p>
+            <h3 class="text-2xl font-black text-slate-900" id="stat-total-mentors">4</h3>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-2xl font-bold">
+            <i class="ph-bold ph-books"></i>
+          </div>
+          <div>
+            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Curriculum Subjects</p>
+            <h3 class="text-2xl font-black text-slate-900">10 + Mega Mock</h3>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-2xl font-bold">
+            <i class="ph-bold ph-calendar-check"></i>
+          </div>
+          <div>
+            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Scheduled Mock Tests</p>
+            <h3 class="text-2xl font-black text-slate-900" id="stat-active-exams">3</h3>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs for Admin -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+        <div class="border-b border-slate-200 flex flex-wrap gap-2 px-6 pt-4 bg-slate-50/60">
+          <button onclick="setAdminTab('generator')" id="admin-tab-generator" class="admin-tab pb-3 px-3 text-sm font-bold border-b-2 border-brand-600 text-brand-600 transition flex items-center gap-2">
+            <i class="ph-bold ph-sparkle"></i>
+            Question Generator & Verification
+          </button>
+          <button onclick="setAdminTab('repository')" id="admin-tab-repository" class="admin-tab pb-3 px-3 text-sm font-semibold border-b-2 border-transparent text-slate-600 hover:text-slate-900 transition flex items-center gap-2">
+            <i class="ph-bold ph-archive"></i>
+            Subject Question Repository
+          </button>
+          <button onclick="setAdminTab('students')" id="admin-tab-students" class="admin-tab pb-3 px-3 text-sm font-semibold border-b-2 border-transparent text-slate-600 hover:text-slate-900 transition flex items-center gap-2">
+            <i class="ph-bold ph-users"></i>
+            Student Roster & Mentor Allocation
+          </button>
+          <button onclick="setAdminTab('scheduled')" id="admin-tab-scheduled" class="admin-tab pb-3 px-3 text-sm font-semibold border-b-2 border-transparent text-slate-600 hover:text-slate-900 transition flex items-center gap-2">
+            <i class="ph-bold ph-clock"></i>
+            Scheduled Online Exams
+          </button>
+        </div>
+
+        <!-- TAB 1: GENERATOR & VERIFICATION -->
+        <div id="admin-content-generator" class="p-6 space-y-6">
+          <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 p-5 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div>
+              <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <i class="ph-bold ph-brain text-brand-600 text-xl"></i>
+                AI Automated MCQ Generator
+              </h2>
+              <p class="text-sm text-slate-600 mt-1">
+                Select from the 10 official subjects or generate a combined mock exam. Questions, choices, rationales, and summary notes are generated in Malayalam (or target language).
+              </p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">
+                <i class="ph-bold ph-check-circle mr-1"></i> Ready for Verification
+              </span>
+            </div>
+          </div>
+
+          <!-- Generator Form -->
+          <form id="gen-form" onsubmit="handleGenerateQuestions(event)" class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <!-- Subject Selection -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Subject</label>
+              <select id="gen-subject" class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 font-medium focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                <option value="Basic Science">Basic Science (അടിസ്ഥാന ശാസ്ത്രം)</option>
+                <option value="Social Science">Social Science (സാമൂഹ്യശാസ്ത്രം)</option>
+                <option value="Mathematics">Mathematics (ഗണിതം)</option>
+                <option value="Malayalam 1st">Malayalam 1st (മലയാളം 1 - സാഹിത്യം)</option>
+                <option value="Malayalam 2nd">Malayalam 2nd (മലയാളം 2 - വ്യാകരണം)</option>
+                <option value="English">English</option>
+                <option value="Hindi">Hindi (हिन्दी)</option>
+                <option value="Urdu">Urdu (اردو)</option>
+                <option value="Arabic">Arabic (العربية)</option>
+                <option value="Sanskrit">Sanskrit (संस्कृतम्)</option>
+                <option value="Combined Mock Exam">🌟 Combined Mock Exam (All 10 Subjects)</option>
+              </select>
+            </div>
+
+            <!-- Topic Title -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Topic / Chapter Title</label>
+              <input type="text" id="gen-topic" required placeholder="e.g., പ്രകാശവും പ്രതിപതനവും or Chapter 4" class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+            </div>
+
+            <!-- Number of MCQs -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Number of Questions</label>
+              <select id="gen-count" class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 font-medium focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                <option value="5">5 Questions (Quick Quiz)</option>
+                <option value="10" selected>10 Questions (Daily Standard)</option>
+                <option value="20">20 Questions (Extended Review)</option>
+                <option value="30">30 Questions (Full Unit Mock)</option>
+              </select>
+            </div>
+
+            <!-- Syllabus / PDF Source Material Upload -->
+            <div class="md:col-span-3">
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Source Material (Paste text or attach PDF notes)</label>
+              <div class="space-y-2">
+                <textarea id="gen-context" rows="3" placeholder="Paste textbook notes, syllabus snippets, or lesson content here. The AI will extract relevant questions and construct pre-quiz revision notes." class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-brand-500 focus:outline-none font-sans"></textarea>
+                
+                <div class="flex items-center gap-3">
+                  <label class="cursor-pointer bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 text-xs font-semibold px-4 py-2 rounded-xl transition flex items-center gap-2">
+                    <i class="ph-bold ph-file-arrow-up text-base text-brand-600"></i>
+                    <span>Attach PDF / Document</span>
+                    <input type="file" id="gen-file-input" accept=".pdf,.txt,.doc,.docx" class="hidden" onchange="handleFileUpload(event)">
+                  </label>
+                  <span id="file-upload-status" class="text-xs text-slate-500 italic">No file attached yet (Optional)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="md:col-span-3 flex justify-end">
+              <button type="submit" id="gen-btn" class="bg-brand-600 hover:bg-brand-700 text-white font-bold px-6 py-2.5 rounded-xl shadow-xs transition flex items-center gap-2">
+                <i class="ph-bold ph-lightning"></i>
+                Generate Topic MCQs & Summary
+              </button>
+            </div>
+          </form>
+
+          <!-- Generated Staging / Verification Area -->
+          <div id="verification-section" class="border-t border-slate-200 pt-6 space-y-6">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <i class="ph-bold ph-pencil-simple-line text-emerald-600 text-lg"></i>
+                  Verification & Inline Editor
+                </h3>
+                <p class="text-xs text-slate-500">Review, modify options, correct answer keys, or add custom notes before scheduling the live exam.</p>
+              </div>
+              <div class="flex items-center gap-3 w-full sm:w-auto">
+                <button onclick="addNewBlankQuestion()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold px-3 py-2 rounded-xl border border-slate-200 transition flex items-center gap-1.5">
+                  <i class="ph-bold ph-plus-circle"></i> Add Question
+                </button>
+                <button onclick="openScheduleModal()" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl shadow-xs transition flex items-center gap-1.5">
+                  <i class="ph-bold ph-calendar-plus"></i> Approve & Schedule Exam
+                </button>
+              </div>
+            </div>
+
+            <!-- Topic Pre-Quiz Summary Editor -->
+            <div class="bg-amber-50/70 border border-amber-200 p-4 rounded-2xl space-y-2">
+              <div class="flex items-center justify-between">
+                <label class="text-xs font-bold text-amber-900 uppercase tracking-wider flex items-center gap-1.5">
+                  <i class="ph-bold ph-notebook"></i>
+                  Pre-Quiz Revision Summary (Displayed to students before starting exam)
+                </label>
+                <span class="text-[11px] text-amber-700 font-medium">Students can read or skip directly to test</span>
+              </div>
+              <textarea id="edit-summary" rows="3" class="w-full bg-white border border-amber-200 rounded-xl p-3 text-sm text-slate-800 focus:ring-2 focus:ring-amber-500 focus:outline-none font-vernacular leading-relaxed"></textarea>
+            </div>
+
+            <!-- Questions Container for Review -->
+            <div id="questions-list-container" class="space-y-4">
+              <!-- Dynamically rendered editable question cards -->
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: SUBJECT QUESTION REPOSITORY -->
+        <div id="admin-content-repository" class="p-6 hidden space-y-6">
+          <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div>
+              <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <i class="ph-bold ph-database text-brand-600"></i>
+                Subject Question Bank & Archive
+              </h2>
+              <p class="text-xs text-slate-500">All generated topics and verified question sets are saved permanently. You can pool these into a Combined Mock Exam anytime.</p>
+            </div>
+            <button onclick="generateCombinedMockFromRepo()" class="bg-brand-600 hover:bg-brand-700 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-2 shadow-xs transition">
+              <i class="ph-bold ph-shuffle"></i>
+              Build Combined Mock Exam (From All Subjects)
+            </button>
+          </div>
+
+          <!-- Subject filter buttons -->
+          <div class="flex flex-wrap gap-2" id="repo-subject-filters">
+            <button onclick="filterRepository('All')" class="px-3 py-1 rounded-lg text-xs font-bold bg-brand-600 text-white">All Subjects</button>
+            <button onclick="filterRepository('Basic Science')" class="px-3 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">Basic Science</button>
+            <button onclick="filterRepository('Social Science')" class="px-3 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">Social Science</button>
+            <button onclick="filterRepository('Mathematics')" class="px-3 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">Mathematics</button>
+            <button onclick="filterRepository('Malayalam 1st')" class="px-3 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">Malayalam 1st</button>
+            <button onclick="filterRepository('Malayalam 2nd')" class="px-3 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">Malayalam 2nd</button>
+            <button onclick="filterRepository('English')" class="px-3 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">English</button>
+            <button onclick="filterRepository('Hindi')" class="px-3 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">Hindi</button>
+            <button onclick="filterRepository('Urdu')" class="px-3 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">Urdu</button>
+            <button onclick="filterRepository('Arabic')" class="px-3 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">Arabic</button>
+            <button onclick="filterRepository('Sanskrit')" class="px-3 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">Sanskrit</button>
+          </div>
+
+          <!-- Stored Topics Grid -->
+          <div id="repo-topics-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- Dynamically populated stored topics cards -->
+          </div>
+        </div>
+
+        <!-- TAB 3: STUDENT ROSTER & MENTOR ALLOCATION -->
+        <div id="admin-content-students" class="p-6 hidden space-y-6">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                <i class="ph-bold ph-address-book text-brand-600"></i>
+                AKHMUP School Candidate Directory & Mentor Allocation
+              </h2>
+              <p class="text-xs text-slate-500">Assign students to teacher mentors for individualized performance tracking.</p>
+            </div>
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+              <div class="relative w-full sm:w-64">
+                <i class="ph-bold ph-magnifying-glass absolute left-3 top-2.5 text-slate-400"></i>
+                <input type="text" id="student-search-input" oninput="renderStudentsTable()" placeholder="Search student name or roll..." class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-9 pr-3 py-2 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none">
+              </div>
+            </div>
+          </div>
+
+          <!-- Students Table -->
+          <div class="overflow-x-auto rounded-xl border border-slate-200">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="bg-slate-100 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider">
+                  <th class="py-3 px-4">Roll No</th>
+                  <th class="py-3 px-4">Candidate Name</th>
+                  <th class="py-3 px-4">Class & Division</th>
+                  <th class="py-3 px-4">Assigned Mentor</th>
+                  <th class="py-3 px-4">Completed Tests</th>
+                  <th class="py-3 px-4">Avg. Accuracy</th>
+                  <th class="py-3 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="admin-students-tbody" class="divide-y divide-slate-200 bg-white">
+                <!-- Dynamically rendered rows -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- TAB 4: SCHEDULED ONLINE EXAMS -->
+        <div id="admin-content-scheduled" class="p-6 hidden space-y-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                <i class="ph-bold ph-calendar-check text-brand-600"></i>
+                Scheduled Daily Mock Exams
+              </h2>
+              <p class="text-xs text-slate-500">Live exams automatically unlock for registered students based on scheduled timing.</p>
+            </div>
+          </div>
+          <div id="admin-scheduled-exams-container" class="space-y-3">
+            <!-- Dynamically rendered list of scheduled exams -->
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- SECTION 2: STUDENT PORTAL (ENGLISH UI)                   -->
+    <!-- ======================================================== -->
+    <div id="view-student" class="role-view hidden space-y-6">
+      
+      <!-- Welcome Header -->
+      <div class="bg-gradient-to-r from-brand-900 via-brand-800 to-indigo-900 rounded-3xl p-6 sm:p-8 text-white shadow-md relative overflow-hidden">
+        <div class="relative z-10 max-w-2xl">
+          <span class="inline-block px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs font-bold text-blue-100 mb-2">
+            CMKids Scholarship Candidate • AKHMUP School Chathrathody
+          </span>
+          <h1 class="text-2xl sm:text-3xl font-black tracking-tight" id="student-greeting">Welcome, Fathima Raniya</h1>
+          <p class="text-blue-100 text-xs sm:text-sm mt-1 leading-relaxed">
+            Daily practice builds scholarship success. Review the revision summary before the test or jump straight in to test your knowledge!
+          </p>
+          <div class="flex flex-wrap items-center gap-4 mt-4 text-xs">
+            <span class="flex items-center gap-1.5 bg-black/20 px-3 py-1.5 rounded-xl border border-white/10">
+              <i class="ph-bold ph-chalkboard-teacher text-amber-300"></i>
+              <span>Mentor: <strong id="student-assigned-mentor-name">Smt. Sujatha Teacher</strong></span>
+            </span>
+            <span class="flex items-center gap-1.5 bg-black/20 px-3 py-1.5 rounded-xl border border-white/10">
+              <i class="ph-bold ph-trophy text-amber-300"></i>
+              <span>Overall Accuracy: <strong id="student-overall-accuracy">88%</strong></span>
+            </span>
+          </div>
+        </div>
+        <!-- Subtle background watermark icon -->
+        <i class="ph-bold ph-graduation-cap absolute -right-6 -bottom-8 text-white/5 text-[180px] pointer-events-none"></i>
+      </div>
+
+      <!-- ACTIVE EXAM ARENA (Visible when taking a test) -->
+      <div id="student-exam-arena" class="hidden space-y-6">
+        
+        <!-- STAGE A: PRE-QUIZ SUMMARY CARD -->
+        <div id="student-summary-stage" class="bg-white border-2 border-brand-100 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+            <div>
+              <span id="active-summary-badge" class="px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-brand-800 uppercase tracking-wider">
+                Basic Science
+              </span>
+              <h2 id="active-summary-title" class="text-xl sm:text-2xl font-black text-slate-900 mt-2 font-vernacular">
+                പ്രകാശവും കാഴ്ചയും
+              </h2>
+              <p class="text-xs text-slate-500 mt-1">Pre-Quiz Topic Review • Read brief notes or skip directly to start the quiz</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="skipSummaryAndStartExam()" class="bg-brand-600 hover:bg-brand-700 text-white font-bold px-5 py-2.5 rounded-xl shadow-xs transition flex items-center gap-2 text-sm">
+                <span>Skip Summary & Start Quiz</span>
+                <i class="ph-bold ph-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Summary Bullet Points (Vernacular content) -->
+          <div class="bg-amber-50/60 border border-amber-200/80 rounded-2xl p-6">
+            <h4 class="text-xs font-bold text-amber-900 uppercase tracking-wider mb-3 flex items-center gap-2">
+              <i class="ph-bold ph-lightbulb text-amber-600 text-base"></i>
+              Key Study Notes for Revision
+            </h4>
+            <div id="active-summary-bullets" class="space-y-3 font-vernacular text-slate-800 text-sm sm:text-base leading-relaxed">
+              <!-- Rendered revision notes -->
+            </div>
+          </div>
+
+          <div class="flex justify-end">
+            <button onclick="skipSummaryAndStartExam()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3 rounded-xl shadow-xs transition flex items-center gap-2 text-sm">
+              <i class="ph-bold ph-play"></i>
+              I Have Read the Notes • Start Online Exam
+            </button>
+          </div>
+        </div>
+
+        <!-- STAGE B: LIVE QUESTION TESTING INTERFACE -->
+        <div id="student-quiz-stage" class="hidden grid grid-cols-1 lg:grid-cols-4 gap-6">
+          
+          <!-- Left/Center: Active Question Area -->
+          <div class="lg:col-span-3 bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-xs flex flex-col justify-between min-h-[520px]">
+            <div>
+              <!-- Top bar with Subject & Timer -->
+              <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
+                <div class="flex items-center gap-3">
+                  <span id="quiz-subject-pill" class="px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-brand-800">
+                    Basic Science
+                  </span>
+                  <span class="text-xs font-bold text-slate-400">
+                    Question <span id="quiz-current-idx">1</span> of <span id="quiz-total-count">10</span>
+                  </span>
+                </div>
+                
+                <!-- Live Countdown Timer -->
+                <div class="flex items-center gap-2 bg-rose-50 text-rose-700 border border-rose-200 px-3.5 py-1.5 rounded-xl font-mono text-sm font-bold shadow-xs">
+                  <i class="ph-bold ph-timer text-base animate-pulse"></i>
+                  <span id="quiz-timer-display">14:59</span>
+                </div>
+              </div>
+
+              <!-- Question Text (Malayalam/Script) -->
+              <div class="mb-6">
+                <h3 id="quiz-question-text" class="text-base sm:text-lg font-bold text-slate-900 leading-relaxed font-vernacular">
+                  <!-- Dynamically inserted question stem in Malayalam -->
+                </h3>
+              </div>
+
+              <!-- MCQ Options (Vernacular choices) -->
+              <div id="quiz-options-container" class="space-y-3">
+                <!-- Dynamically inserted radio choices -->
+              </div>
+            </div>
+
+            <!-- Quiz Bottom Action Bar -->
+            <div class="border-t border-slate-100 pt-6 mt-8 flex flex-wrap items-center justify-between gap-3">
+              <div class="flex items-center gap-2">
+                <button onclick="prevQuestion()" id="btn-quiz-prev" class="px-4 py-2 border border-slate-300 text-slate-700 font-bold rounded-xl text-xs hover:bg-slate-50 transition flex items-center gap-1.5">
+                  <i class="ph-bold ph-caret-left"></i> Previous
+                </button>
+                <button onclick="toggleMarkForReview()" id="btn-quiz-mark" class="px-4 py-2 border border-amber-300 text-amber-700 bg-amber-50 font-bold rounded-xl text-xs hover:bg-amber-100 transition flex items-center gap-1.5">
+                  <i class="ph-bold ph-flag"></i> Mark for Review
+                </button>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <button onclick="nextQuestion()" id="btn-quiz-next" class="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl text-xs shadow-xs transition flex items-center gap-1.5">
+                  Next <i class="ph-bold ph-caret-right"></i>
+                </button>
+                <button onclick="confirmSubmitQuiz()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow-xs transition flex items-center gap-1.5">
+                  <i class="ph-bold ph-paper-plane-tilt"></i> Submit Exam
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Sidebar: Question Palette & Navigation Grid -->
+          <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-xs flex flex-col justify-between">
+            <div>
+              <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-3 flex items-center gap-2">
+                <i class="ph-bold ph-grid-four text-brand-600"></i>
+                Question Palette
+              </h4>
+              <div id="quiz-palette-grid" class="grid grid-cols-5 gap-2">
+                <!-- Dynamically rendered question number tiles -->
+              </div>
+
+              <!-- Legend -->
+              <div class="mt-6 pt-4 border-t border-slate-100 space-y-2 text-[11px] text-slate-600 font-medium">
+                <div class="flex items-center gap-2">
+                  <span class="w-3.5 h-3.5 rounded-md bg-emerald-600 inline-block"></span>
+                  <span>Answered</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="w-3.5 h-3.5 rounded-md bg-amber-500 inline-block"></span>
+                  <span>Marked for Review</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="w-3.5 h-3.5 rounded-md bg-slate-100 border border-slate-300 inline-block"></span>
+                  <span>Unanswered</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-6">
+              <button onclick="confirmSubmitQuiz()" class="w-full bg-slate-900 hover:bg-black text-white font-bold py-2.5 rounded-xl text-xs shadow-xs transition flex items-center justify-center gap-2">
+                <i class="ph-bold ph-check-circle"></i>
+                Finish & Submit
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- STAGE C: POST-EXAM RESULTS & RATIONALE REVIEW -->
+        <div id="student-result-stage" class="hidden space-y-6">
+          <div class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-xs">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6 border-b border-slate-100 pb-6">
+              <div>
+                <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">Exam Completed</span>
+                <h2 class="text-2xl font-black text-slate-900 mt-2" id="result-exam-title">Basic Science Daily Mock #1</h2>
+                <p class="text-xs text-slate-500 mt-1">Review your score, correct choices, and detailed Malayalam explanations below.</p>
+              </div>
+              <div class="flex items-center gap-4 bg-slate-50 border border-slate-200 px-6 py-4 rounded-2xl text-center">
+                <div>
+                  <div class="text-3xl font-black text-brand-700" id="result-score-display">9 / 10</div>
+                  <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mt-0.5">Score Secured</div>
+                </div>
+                <div class="border-l border-slate-200 pl-4">
+                  <div class="text-3xl font-black text-emerald-600" id="result-accuracy-display">90%</div>
+                  <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mt-0.5">Accuracy</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Detailed Question-by-Question Review with Malayalam Explanations -->
+            <div class="mt-6 space-y-4">
+              <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Answer Key & Rationales</h4>
+              <div id="result-review-list" class="space-y-4">
+                <!-- Dynamically rendered review items -->
+              </div>
+            </div>
+
+            <div class="mt-8 flex justify-end">
+              <button onclick="returnToStudentDashboard()" class="bg-brand-600 hover:bg-brand-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow-xs transition flex items-center gap-2">
+                <i class="ph-bold ph-house"></i>
+                Return to Exam Portal
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- AVAILABLE DAILY EXAMS LIST -->
+      <div id="student-exams-dashboard" class="space-y-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-lg font-bold text-slate-900">Available Mock Tests</h2>
+            <p class="text-xs text-slate-500">Live mock tests scheduled for CMKids Scholarship candidates.</p>
+          </div>
+          <span class="text-xs font-semibold text-slate-600 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
+            Updated Today
+          </span>
+        </div>
+
+        <div id="student-available-tests-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <!-- Dynamically populated exam cards -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- SECTION 3: MENTOR DASHBOARD (ENGLISH UI)                  -->
+    <!-- ======================================================== -->
+    <div id="view-mentor" class="role-view hidden space-y-6">
+      
+      <!-- Mentor Welcome & Overview -->
+      <div class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <div>
+          <span class="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold uppercase tracking-wider">
+            Teacher Mentor Portal
+          </span>
+          <h1 class="text-2xl font-black text-slate-900 mt-2" id="mentor-welcome-name">Smt. Sujatha Teacher</h1>
+          <p class="text-xs sm:text-sm text-slate-600 mt-1">
+            AKHMUP School Chathrathody • Dedicated Mentor Roster (12 Candidates)
+          </p>
+        </div>
+        <div class="flex items-center gap-4 bg-slate-50 border border-slate-200 p-4 rounded-2xl">
+          <div class="text-center px-2">
+            <div class="text-2xl font-black text-slate-900">12</div>
+            <div class="text-[11px] font-bold text-slate-500 uppercase">Assigned Mentees</div>
+          </div>
+          <div class="border-l border-slate-200 pl-4 text-center">
+            <div class="text-2xl font-black text-emerald-600">86.4%</div>
+            <div class="text-[11px] font-bold text-slate-500 uppercase">Batch Accuracy</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mentees Progress Table -->
+      <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+              <i class="ph-bold ph-chart-line-up text-brand-600"></i>
+              Assigned Mentee Performance Tracker
+            </h3>
+            <p class="text-xs text-slate-500">Monitor daily attendance, completion rates, and individual weakness areas.</p>
+          </div>
+          <div class="relative w-full sm:w-64">
+            <i class="ph-bold ph-magnifying-glass absolute left-3 top-2.5 text-slate-400"></i>
+            <input type="text" id="mentor-search-mentee" oninput="renderMentorTable()" placeholder="Filter assigned mentee..." class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-9 pr-3 py-2 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none">
+          </div>
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border border-slate-200">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-slate-100 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider">
+                <th class="py-3 px-4">Roll</th>
+                <th class="py-3 px-4">Student Name</th>
+                <th class="py-3 px-4">Daily Attendance</th>
+                <th class="py-3 px-4">Tests Taken</th>
+                <th class="py-3 px-4">Avg. Accuracy</th>
+                <th class="py-3 px-4">Needs Attention In</th>
+                <th class="py-3 px-4 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="mentor-mentees-tbody" class="divide-y divide-slate-200 bg-white">
+              <!-- Dynamically populated mentee rows -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- SCHEDULE MODAL (ADMIN ONLY)                               -->
+    <!-- ======================================================== -->
+    <div id="modal-schedule" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs hidden flex items-center justify-center p-4">
+      <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-xl border border-slate-200 space-y-5 animate-scale-up">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+            <i class="ph-bold ph-calendar-plus text-brand-600"></i>
+            Schedule Online Mock Exam
+          </h3>
+          <button onclick="closeScheduleModal()" class="text-slate-400 hover:text-slate-600">
+            <i class="ph-bold ph-x text-lg"></i>
+          </button>
+        </div>
+
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Exam Title</label>
+            <input type="text" id="modal-exam-title" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800">
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Time Limit (Mins)</label>
+              <input type="number" id="modal-exam-duration" value="15" min="5" max="180" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Schedule Date</label>
+              <input type="date" id="modal-exam-date" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800">
+            </div>
+          </div>
+
+          <div class="p-3 bg-blue-50 border border-blue-100 rounded-xl text-xs text-blue-900">
+            <i class="ph-bold ph-info mr-1"></i>
+            Approved questions will be locked into the exam portal and become available for candidates.
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-2">
+          <button onclick="closeScheduleModal()" class="px-4 py-2 border border-slate-300 text-slate-700 font-bold rounded-xl text-xs hover:bg-slate-50 transition">
+            Cancel
+          </button>
+          <button onclick="commitScheduledExam()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow-xs transition">
+            Publish & Schedule Test
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- FOOTER                                                   -->
+    <!-- ======================================================== -->
+    <footer class="mt-16 py-6 border-t border-slate-200 text-center text-xs text-slate-500">
+      <div class="flex items-center justify-center gap-2 mb-1 font-semibold text-slate-700">
+        <span>AKHMUP School Chathrathody</span>
+        <span>•</span>
+        <span>Estd. 1982</span>
+        <span>•</span>
+        <span class="text-brand-600">CMKids Scholarship Mock Portal</span>
+      </div>
+      <p class="text-[11px] text-slate-400">All administrative operations, scheduling, and portal interfaces are managed in English. Questions and summaries are delivered in the candidate curriculum language.</p>
+    </footer>
+
+  </main>
+
+  <!-- ================= APPLICATION LOGIC SCRIPT ================= -->
+  <script>
+    /* ========================================================
+       CORE DATABASE & STATE MANAGEMENT (LOCAL/SESSION STORE)
+       ======================================================== */
+    
+    // Available 10 Subjects Definition
+    const SUBJECTS = [
+      "Basic Science", "Social Science", "Mathematics", 
+      "Malayalam 1st", "Malayalam 2nd", "English", 
+      "Hindi", "Urdu", "Arabic", "Sanskrit", 
+      "Combined Mock Exam"
+    ];
+
+    // Teachers / Mentors Roster
+    const MENTORS = [
+      { id: "m1", name: "Smt. Sujatha Teacher", subject: "Basic Science", menteesCount: 12 },
+      { id: "m2", name: "Sri. Abdul Rasheed Master", subject: "Mathematics & Urdu", menteesCount: 12 },
+      { id: "m3", name: "Smt. Latha Kumari Teacher", subject: "Social Science", menteesCount: 12 },
+      { id: "m4", name: "Sri. K. Gangadharan Master", subject: "Malayalam & Sanskrit", menteesCount: 12 }
+    ];
+
+    // Sample Students Database (AKHMUP School Chathrathody)
+    let STUDENTS = [
+      { id: "s1", roll: "101", name: "Fathima Raniya", class: "7 A", mentorId: "m1", testsTaken: 14, avgAccuracy: 92, weakSubject: "Mathematics" },
+      { id: "s2", roll: "102", name: "Muhammed Nihal", class: "7 A", mentorId: "m2", testsTaken: 12, avgAccuracy: 84, weakSubject: "Basic Science" },
+      { id: "s3", roll: "103", name: "Devanand K. P.", class: "7 B", mentorId: "m3", testsTaken: 15, avgAccuracy: 89, weakSubject: "Social Science" },
+      { id: "s4", roll: "104", name: "Anamika Rajesh", class: "7 B", mentorId: "m4", testsTaken: 13, avgAccuracy: 94, weakSubject: "Hindi" },
+      { id: "s5", roll: "105", name: "Aflah Shareef", class: "7 A", mentorId: "m1", testsTaken: 11, avgAccuracy: 78, weakSubject: "Urdu" },
+      { id: "s6", roll: "106", name: "Sreeparvathy M.", class: "7 C", mentorId: "m2", testsTaken: 15, avgAccuracy: 96, weakSubject: "Mathematics" },
+      { id: "s7", roll: "107", name: "Aysha Hanna", class: "7 C", mentorId: "m3", testsTaken: 10, avgAccuracy: 81, weakSubject: "English" },
+      { id: "s8", roll: "108", name: "Gokul Krishna", class: "7 B", mentorId: "m4", testsTaken: 14, avgAccuracy: 87, weakSubject: "Basic Science" }
+    ];
+
+    // Stored Question Bank & Archive (Multi-Subject Repository)
+    let QUESTION_BANK = [
+      {
+        id: "repo-1",
+        subject: "Basic Science",
+        topicTitle: "പ്രകാശവും കാഴ്ചയും (Light and Vision)",
+        createdDate: "2026-03-28",
+        summaryNotes: [
+          "പ്രകാശം നേർരേഖയിലാണ് സഞ്ചരിക്കുന്നത്.",
+          "പ്രകാശം ഒരു പ്രതലത്തിൽ തട്ടി തിരിച്ചു വരുന്ന പ്രതിഭാസമാണ് പ്രതിപതനം (Reflection).",
+          "സുതാര്യ വസ്തുക്കളിലൂടെ പ്രകാശം പൂർണ്ണമായും കടന്നുപോകുന്നു."
+        ],
+        questions: [
+          {
+            stem: "താഴെ പറയുന്നവയിൽ സ്വയം പ്രകാശിക്കുന്ന വസ്തു ഏതാണ്?",
+            options: ["ചന്ദ്രൻ", "സൂര്യൻ", "കണ്ണാടി", "ഗ്രഹം"],
+            correctIndex: 1,
+            explanation: "സൂര്യൻ സ്വന്തമായി പ്രകാശം പുറപ്പെടുവിക്കുന്ന നക്ഷത്രമാണ്. എന്നാൽ ചന്ദ്രൻ സൂര്യപ്രകാശത്തെ പ്രതിപതിപ്പിക്കുക മാത്രമാണ് ചെയ്യുന്നത്."
+          },
+          {
+            stem: "പ്രകാശം സുതാര്യമായ മറ്റൊരു മാധ്യമത്തിലേക്ക് കടക്കുമ്പോൾ അതിന്റെ പാതയ്ക്ക് ഉണ്ടാകുന്ന വ്യതിയാനമാണ്:",
+            options: ["പ്രതിപതനം", "പ്രകീർണ്ണനം", "അപവർത്തനം", "വിസരണം"],
+            correctIndex: 2,
+            explanation: "ഒരു മാധ്യമത്തിൽ നിന്നും സാന്ദ്രതാ വ്യത്യാസമുള്ള മറ്റൊരു മാധ്യമത്തിലേക്ക് പ്രവേശിക്കുമ്പോൾ പ്രകാശപാത വളയുന്ന പ്രതിഭാസമാണ് അപവർത്തനം (Refraction)."
+          }
+        ]
+      },
+      {
+        id: "repo-2",
+        subject: "Social Science",
+        topicTitle: "നമ്മുടെ ഭരണഘടന (Our Constitution)",
+        createdDate: "2026-03-29",
+        summaryNotes: [
+          "ഇന്ത്യൻ ഭരണഘടന നിലവിൽ വന്നത് 1950 ജനുവരി 26-നാണ്.",
+          "ഭരണഘടനാ നിർമ്മാണ സഭയുടെ ഡ്രാഫ്റ്റിംഗ് കമ്മിറ്റി ചെയർമാൻ ഡോ. ബി. ആർ. അംബേദ്കർ ആയിരുന്നു."
+        ],
+        questions: [
+          {
+            stem: "ഇന്ത്യയുടെ ഭരണഘടനാ ശിൽപി എന്നറിയപ്പെടുന്നത് ആര്?",
+            options: ["ജവഹർലാൽ നെഹ്റു", "ഡോ. ബി. ആർ. അംബേദ്കർ", "മഹാത്മാഗാന്ധി", "സർദാർ വല്ലഭ്ഭായ് പട്ടേൽ"],
+            correctIndex: 1,
+            explanation: "ഡ്രാഫ്റ്റിംഗ് കമ്മിറ്റിയുടെ ചെയർമാനായിരുന്ന ഡോ. ബി. ആർ. അംബേദ്കറാണ് ഇന്ത്യൻ ഭരണഘടനയുടെ ശിൽപി എന്നറിയപ്പെടുന്നത്."
+          }
+        ]
+      },
+      {
+        id: "repo-3",
+        subject: "Mathematics",
+        topicTitle: "ഭിന്നസംഖ്യകൾ (Fractions & Decimals)",
+        createdDate: "2026-03-29",
+        summaryNotes: [
+          "ഛേദം തുല്യമായ ഭിന്നസംഖ്യകളെ കൂട്ടാൻ അംശങ്ങൾ തമ്മിൽ കൂട്ടിയാൽ മതിയാകും.",
+          "1/2 എന്നാൽ 0.5 ന് തുല്യമാണ്."
+        ],
+        questions: [
+          {
+            stem: "3/4 + 1/4 ന്റെ വില എത്രയാണ്?",
+            options: ["1/2", "1", "4/8", "2"],
+            correctIndex: 1,
+            explanation: "3/4 + 1/4 = (3 + 1)/4 = 4/4 = 1."
+          }
+        ]
+      },
+      {
+        id: "repo-4",
+        subject: "Malayalam 1st",
+        topicTitle: "സാഹിത്യ സൗരഭം (Literature & Poetry)",
+        createdDate: "2026-03-30",
+        summaryNotes: [
+          "മലയാള ഭാഷയുടെ പിതാവ് എന്നറിയപ്പെടുന്നത് തുഞ്ചത്തെഴുത്തച്ഛനാണ്.",
+          "കിളിപ്പാട്ട് പ്രസ്ഥാനത്തിന്റെ ഉപജ്ഞാതാവും അദ്ദേഹമാണ്."
+        ],
+        questions: [
+          {
+            stem: "മലയാള ഭാഷയുടെ പിതാവ് എന്നറിയപ്പെടുന്ന കവി ആര്?",
+            options: ["ചെറുശ്ശേരി", "കുഞ്ചൻ നമ്പ്യാർ", "തുഞ്ചത്തെഴുത്തച്ഛൻ", "ഉള്ളൂർ"],
+            correctIndex: 2,
+            explanation: "അധ്യാത്മരാമായണം കിളിപ്പാട്ട് രചിച്ച തുഞ്ചത്ത് രാമാനുജൻ എഴുത്തച്ഛനാണ് മലയാള ഭാഷയുടെ പിതാവ്."
+          }
+        ]
+      },
+      {
+        id: "repo-5",
+        subject: "English",
+        topicTitle: "Grammar: Degrees of Comparison",
+        createdDate: "2026-03-30",
+        summaryNotes: [
+          "Adjectives have three degrees: Positive, Comparative, and Superlative.",
+          "Use the comparative form (-er or more) when comparing two items."
+        ],
+        questions: [
+          {
+            stem: "Choose the correct option: 'Mount Everest is _______ than K2.'",
+            options: ["high", "higher", "highest", "more high"],
+            correctIndex: 1,
+            explanation: "When comparing two mountains, the comparative degree 'higher' is used."
+          }
+        ]
+      }
+    ];
+
+    // Scheduled Active Exams (Available to Students)
+    let SCHEDULED_EXAMS = [
+      {
+        id: "exam-001",
+        title: "Basic Science Daily Mock #1",
+        subject: "Basic Science",
+        duration: 15,
+        date: "2026-03-30",
+        status: "Active",
+        summaryNotes: [
+          "പ്രകാശം നേർരേഖയിലാണ് സഞ്ചരിക്കുന്നത്.",
+          "പ്രകാശം ഒരു പ്രതലത്തിൽ തട്ടി തിരിച്ചു വരുന്ന പ്രതിഭാസമാണ് പ്രതിപതനം (Reflection).",
+          "സുതാര്യ വസ്തുക്കളിലൂടെ പ്രകാശം പൂർണ്ണമായും കടന്നുപോകുന്നു."
+        ],
+        questions: [
+          {
+            stem: "താഴെ പറയുന്നവയിൽ സ്വയം പ്രകാശിക്കുന്ന വസ്തു ഏതാണ്?",
+            options: ["ചന്ദ്രൻ", "സൂര്യൻ", "കണ്ണാടി", "ഗ്രഹം"],
+            correctIndex: 1,
+            explanation: "സൂര്യൻ സ്വന്തമായി പ്രകാശം പുറപ്പെടുവിക്കുന്ന നക്ഷത്രമാണ്. എന്നാൽ ചന്ദ്രൻ സൂര്യപ്രകാശത്തെ പ്രതിപതിപ്പിക്കുക മാത്രമാണ് ചെയ്യുന്നത്."
+          },
+          {
+            stem: "പ്രകാശം സുതാര്യമായ മറ്റൊരു മാധ്യമത്തിലേക്ക് കടക്കുമ്പോൾ അതിന്റെ പാതയ്ക്ക് ഉണ്ടാകുന്ന വ്യതിയാനമാണ്:",
+            options: ["പ്രതിപതനം", "പ്രകീർണ്ണനം", "അപവർത്തനം", "വിസരണം"],
+            correctIndex: 2,
+            explanation: "ഒരു മാധ്യമത്തിൽ നിന്നും സാന്ദ്രതാ വ്യത്യാസമുള്ള മറ്റൊരു മാധ്യമത്തിലേക്ക് പ്രവേശിക്കുമ്പോൾ പ്രകാശപാത വളയുന്ന പ്രതിഭാസമാണ് അപവർത്തനം (Refraction)."
+          },
+          {
+            stem: "നിഴലുകൾ രൂപപ്പെടാൻ പ്രധാന കാരണം എന്താണ്?",
+            options: ["പ്രകാശത്തിന്റെ അപവർത്തനം", "പ്രകാശം നേർരേഖയിൽ സഞ്ചരിക്കുന്നത്", "പ്രകീർണ്ണനം", "വിസരണം"],
+            correctIndex: 1,
+            explanation: "പ്രകാശം നേർരേഖയിൽ സഞ്ചരിക്കുന്നതിനാലാണ് അതാര്യ വസ്തുക്കൾക്ക് പിന്നിൽ നിഴൽ രൂപപ്പെടുന്നത്."
+          }
+        ]
+      },
+      {
+        id: "exam-002",
+        title: "Social Science Unit Test #1",
+        subject: "Social Science",
+        duration: 20,
+        date: "2026-03-31",
+        status: "Upcoming",
+        summaryNotes: [
+          "ഇന്ത്യൻ ഭരണഘടന 1950 ജനുവരി 26 ന് നിലവിൽ വന്നു."
+        ],
+        questions: [
+          {
+            stem: "ഇന്ത്യയുടെ ഭരണഘടനാ ശിൽപി എന്നറിയപ്പെടുന്നത് ആര്?",
+            options: ["ജവഹർലാൽ നെഹ്റു", "ഡോ. ബി. ആർ. അംബേദ്കർ", "മഹാത്മാഗാന്ധി", "സർദാർ പട്ടേൽ"],
+            correctIndex: 1,
+            explanation: "ഡോ. ബി. ആർ. അംബേദ്കറാണ് ഭരണഘടനാ ശിൽപി."
+          }
+        ]
+      }
+    ];
+
+    // Current Staging Questions in Generator
+    let STAGING_QUESTIONS = [
+      {
+        stem: "സസ്യങ്ങളിൽ പ്രകാശസംശ്ലേഷണം (Photosynthesis) പ്രധാനമായും നടക്കുന്നത് ഏത് ഭാഗത്താണ്?",
+        options: ["വേര്", "തണ്ട്", "ഇല", "പൂവ്"],
+        correctIndex: 2,
+        explanation: "ഇലകളിലെ ഹരിതകത്തിന്റെ (Chlorophyll) സാന്നിധ്യത്തിലാണ് സസ്യങ്ങൾ പ്രകാശസംശ്ലേഷണം വഴി ആഹാരം നിർമ്മിക്കുന്നത്."
+      },
+      {
+        stem: "സസ്യങ്ങൾക്ക് പച്ചനിറം നൽകുന്ന വർണ്ണകം ഏതാണ്?",
+        options: ["ഹരിതകം (Chlorophyll)", "കരോട്ടിൻ", "സാന്തോഫിൽ", "ആന്തോസയാനിൻ"],
+        correctIndex: 0,
+        explanation: "സസ്യങ്ങളിലെ ഇലകൾക്ക് പച്ചനിറം നൽകുന്നത് ക്ലോറോഫിൽ അഥവാ ഹരിതകമാണ്."
+      }
+    ];
+
+    let STAGING_SUMMARY = [
+      "സസ്യങ്ങൾ സൂര്യപ്രകാശവും കാർബൺ ഡൈഓക്സൈഡും ജലവും ഉപയോഗിച്ച് ആഹാരം നിർമ്മിക്കുന്ന പ്രക്രിയയാണ് പ്രകാശസംശ്ലേഷണം.",
+      "പ്രകാശസംശ്ലേഷണത്തിന്റെ ഉപോൽപ്പന്നമായി അന്തരീക്ഷത്തിലേക്ക് ഓക്സിജൻ പുറത്തുവിടുന്നു.",
+      "ഇലകളിലെ ഹരിതകം സൂര്യപ്രകാശത്തെ ആഗിരണം ചെയ്യുന്നു."
+    ];
+
+    // App Session State
+    let CURRENT_ROLE = 'admin'; // 'admin' | 'student' | 'mentor'
+    let CURRENT_STUDENT = STUDENTS[0]; // Logged in student
+    let CURRENT_MENTOR = MENTORS[0]; // Logged in mentor
+    
+    // Active Exam Runtime State
+    let ACTIVE_EXAM = null;
+    let QUIZ_CURRENT_INDEX = 0;
+    let STUDENT_ANSWERS = {}; // { questionIndex: selectedOptionIndex }
+    let MARKED_FOR_REVIEW = {}; // { questionIndex: true/false }
+    let QUIZ_TIMER_INTERVAL = null;
+    let REMAINING_SECONDS = 0;
+
+    /* ========================================================
+       ROLE SWITCHING LOGIC
+       ======================================================== */
+    function switchRole(role) {
+      CURRENT_ROLE = role;
+      
+      // Update Role Switcher Buttons Styling
+      ['admin', 'student', 'mentor'].forEach(r => {
+        const btn = document.getElementById(`role-btn-${r}`);
+        if (r === role) {
+          btn.className = "role-btn px-3 py-1.5 rounded-lg font-bold text-xs bg-brand-600 text-white shadow-xs";
+        } else {
+          btn.className = "role-btn px-3 py-1.5 rounded-lg font-semibold text-xs text-slate-600 hover:text-slate-900";
+        }
+      });
+
+      // Hide all main role views
+      document.getElementById('view-admin').classList.add('hidden');
+      document.getElementById('view-student').classList.add('hidden');
+      document.getElementById('view-mentor').classList.add('hidden');
+
+      // Header display badges
+      const userDisplay = document.getElementById('user-display-name');
+      const roleDisplay = document.getElementById('user-display-role');
+      const avatar = document.getElementById('user-avatar');
+
+      if (role === 'admin') {
+        document.getElementById('view-admin').classList.remove('hidden');
+        userDisplay.innerText = "Exam Coordinator";
+        roleDisplay.innerText = "AKHMUP Chief Administrator";
+        avatar.src = "https://placehold.co/40x40/1e3a8a/ffffff?text=AD";
+        renderStagingQuestions();
+        renderRepositoryCards();
+        renderStudentsTable();
+        renderScheduledExamsAdmin();
+      } else if (role === 'student') {
+        document.getElementById('view-student').classList.remove('hidden');
+        userDisplay.innerText = CURRENT_STUDENT.name;
+        roleDisplay.innerText = `Roll No: ${CURRENT_STUDENT.roll} • Class ${CURRENT_STUDENT.class}`;
+        avatar.src = `https://placehold.co/40x40/2563eb/ffffff?text=${CURRENT_STUDENT.name.substring(0, 2).toUpperCase()}`;
+        renderStudentDashboard();
+      } else if (role === 'mentor') {
+        document.getElementById('view-mentor').classList.remove('hidden');
+        userDisplay.innerText = CURRENT_MENTOR.name;
+        roleDisplay.innerText = `Faculty Mentor (${CURRENT_MENTOR.subject})`;
+        avatar.src = "https://placehold.co/40x40/059669/ffffff?text=TM";
+        renderMentorDashboard();
+      }
+
+      showToast(`Switched view to ${role.toUpperCase()} Mode`);
+    }
+
+    /* ========================================================
+       ADMIN VIEW CONTROLLERS & TABS
+       ======================================================== */
+    function setAdminTab(tabName) {
+      const tabs = ['generator', 'repository', 'students', 'scheduled'];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`admin-tab-${t}`);
+        const content = document.getElementById(`admin-content-${t}`);
+        if (t === tabName) {
+          btn.className = "admin-tab pb-3 px-3 text-sm font-bold border-b-2 border-brand-600 text-brand-600 flex items-center gap-2";
+          content.classList.remove('hidden');
+        } else {
+          btn.className = "admin-tab pb-3 px-3 text-sm font-semibold border-b-2 border-transparent text-slate-600 hover:text-slate-900 flex items-center gap-2";
+          content.classList.add('hidden');
+        }
+      });
+    }
+
+    // Handle Upload Simulator
+    function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (file) {
+        document.getElementById('file-upload-status').innerText = `Attached: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+        showToast(`Document "${file.name}" attached for MCQ extraction`);
+      }
+    }
+
+    // Handle Simulated AI Question Generation
+    function handleGenerateQuestions(event) {
+      event.preventDefault();
+      const subject = document.getElementById('gen-subject').value;
+      const topic = document.getElementById('gen-topic').value.trim();
+      const count = parseInt(document.getElementById('gen-count').value);
+      const btn = document.getElementById('gen-btn');
+
+      // Visual generating state
+      btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i> Generating MCQs in Malayalam...`;
+      btn.disabled = true;
+
+      setTimeout(() => {
+        btn.innerHTML = `<i class="ph-bold ph-lightning"></i> Generate Topic MCQs & Summary`;
+        btn.disabled = false;
+
+        // Populate generated questions according to target language
+        generateMockQuestionsBySubject(subject, topic, count);
+        
+        // Save automatically into permanent repository
+        saveToRepository(subject, topic, STAGING_QUESTIONS, STAGING_SUMMARY);
+
+        renderStagingQuestions();
+        showToast(`Successfully generated ${count} questions & revision summary!`);
+      }, 700);
+    }
+
+    // Dynamic Mock Question Factory (Malayalam stems & options for core subjects, respective script for languages)
+    function generateMockQuestionsBySubject(subject, topic, count) {
+      STAGING_QUESTIONS = [];
+      
+      if (subject === "Combined Mock Exam") {
+        // Multi-subject mix
+        STAGING_SUMMARY = [
+          "എല്ലാ വിഷയങ്ങളും ചേർത്തുള്ള സംയോജിത മാതൃകാ പരീക്ഷ (Combined Mega Mock Exam).",
+          "ശാസ്ത്രം, ഗണിതം, സാമൂഹ്യം, ഭാഷാവിഷയങ്ങൾ എന്നിവയിൽ നിന്നുള്ള പ്രധാന ചോദ്യങ്ങൾ ഉൾപ്പെടുത്തിയിരിക്കുന്നു."
+        ];
+        STAGING_QUESTIONS = [
+          {
+            stem: "[ശാസ്ത്രം] ഭൂമിയിൽ ഏറ്റവും കൂടുതൽ കാണപ്പെടുന്ന വാതകം ഏതാണ്?",
+            options: ["ഓക്സിജൻ", "നൈട്രജൻ", "കാർബൺ ഡൈഓക്സൈഡ്", "ഹൈഡ്രജൻ"],
+            correctIndex: 1,
+            explanation: "അന്തരീക്ഷത്തിൽ ഏകദേശം 78% നൈട്രജനും 21% ഓക്സിജനുമാണ് അടങ്ങിയിരിക്കുന്നത്."
+          },
+          {
+            stem: "[ഗണിതം] 15 ന്റെ 20% എത്രയാണ്?",
+            options: ["2", "3", "4", "5"],
+            correctIndex: 1,
+            explanation: "15 x (20/100) = 15 x 0.2 = 3."
+          },
+          {
+            stem: "[സാമൂഹ്യശാസ്ത്രം] കേരളത്തിലെ ഏറ്റവും നീളം കൂടിയ നദി ഏതാണ്?",
+            options: ["ഭാരതപ്പുഴ", "പെരിയാർ", "പമ്പ", "ചാലിയാർ"],
+            correctIndex: 1,
+            explanation: "കേരളത്തിലെ ഏറ്റവും നീളം കൂടിയ നദി പെരിയാറാണ് (244 കി.മീ). രണ്ടാമത്തേത് ഭാരതപ്പുഴയാണ്."
+          },
+          {
+            stem: "[English] Choose the correct plural form of 'Child':",
+            options: ["Childs", "Children", "Childrens", "Childes"],
+            correctIndex: 1,
+            explanation: "The irregular plural form of 'child' is 'children'."
+          },
+          {
+            stem: "[മലയാളം] 'സൂര്യൻ' എന്ന പദത്തിന്റെ പര്യായപദമല്ലാത്തത് ഏത്?",
+            options: ["ദിനകരൻ", "ഭാസ്കരൻ", "നിശാകരൻ", "ആദിത്യൻ"],
+            correctIndex: 2,
+            explanation: "'നിശാകരൻ' എന്നാൽ ചന്ദ്രൻ എന്നാണ് അർത്ഥം. ബാക്കിയെല്ലാം സൂര്യന്റെ പര്യായങ്ങളാണ്."
+          }
+        ];
+        return;
+      }
+
+      if (subject === "Arabic") {
+        STAGING_SUMMARY = [
+          "اللغة العربية لغة القرآن الكريم ولها قواعد نحوية متميزة.",
+          "تنقسم الكلمة في العربية إلى اسم، وفعل، وحرف."
+        ];
+        STAGING_QUESTIONS = [
+          {
+            stem: "مَا هُوَ مُؤَنَّثُ كَلِمَةِ «مُعَلِّمٌ»؟",
+            options: ["مُعَلِّمَانِ", "مُعَلِّمَةٌ", "مُعَلِّمُونَ", "مُعَلِّمَاتٌ"],
+            correctIndex: 1,
+            explanation: "تزاد التاء المربوطة في آخر الاسم المفرد المذكر للدلالة على المؤنث."
+          },
+          {
+            stem: "كَمْ عَدَدُ حُرُوفِ اللُّغَةِ العَرَبِيَّةِ؟",
+            options: ["٢٦", "٢٨", "٣٠", "٢٤"],
+            correctIndex: 1,
+            explanation: "عدد حروف الهجاء في اللغة العربية ٢٨ حرفاً."
+          }
+        ];
+        return;
+      }
+
+      if (subject === "Urdu") {
+        STAGING_SUMMARY = [
+          "اردو زبان کی بنیاد خوبصورت شاعری اور شائستہ قواعد پر مبنی ہے۔",
+          "اسم کسی شخص، جگہ یا چیز کے نام کو کہتے ہیں۔"
+        ];
+        STAGING_QUESTIONS = [
+          {
+            stem: "قومی شاعرِ مشرق کسے کہا جاتا ہے؟",
+            options: ["مرزا غالب", "علامہ اقبال", "فیض احمد فیض", "میر تقی میر"],
+            correctIndex: 1,
+            explanation: "ڈاکٹر علامہ محمد اقبال کو شاعرِ مشرق کہا جاتا ہے۔"
+          }
+        ];
+        return;
+      }
+
+      if (subject === "Hindi") {
+        STAGING_SUMMARY = [
+          "संज्ञा किसी व्यक्ति, वस्तु, स्थान या भाव के नाम को कहते हैं।",
+          "हिंदी वर्णमाला में स्वरों और व्यंजनों का व्यवस्थित क्रम है।"
+        ];
+        STAGING_QUESTIONS = [
+          {
+            stem: "निम्नलिखित में से 'सूर्य' का पर्यायवाची शब्द कौन सा है?",
+            options: ["शशि", "रवि", "निशाकर", "नीर"],
+            correctIndex: 1,
+            explanation: "'रवि' सूर्य का प्रसिद्ध पर्यायवाची शब्द है। 'शशि' चंद्रमा को कहते हैं।"
+          }
+        ];
+        return;
+      }
+
+      // Default for Malayalam 1st, Malayalam 2nd, Basic Science, Social Science, Mathematics
+      STAGING_SUMMARY = [
+        `${topic} എന്ന വിഷയത്തെക്കുറിച്ചുള്ള സംക്ഷിപ്ത കുറിപ്പുകൾ താഴെ നൽകുന്നു.`,
+        "പ്രധാന ആശയങ്ങളും മുൻ പരീക്ഷകളിലെ മാതൃകാ ചോദ്യങ്ങളും ശ്രദ്ധാപൂർവ്വം വായിക്കുക."
+      ];
+
+      for (let i = 1; i <= count; i++) {
+        STAGING_QUESTIONS.push({
+          stem: `${topic} - പാഠഭാഗത്തെ ആസ്പദമാക്കിയുള്ള ചോദ്യം ${i}: താഴെ നൽകിയിരിക്കുന്ന പ്രസ്താവനകളിൽ ശരിയായത് ഏത്?`,
+          options: [
+            `ഓപ്ഷൻ A (${topic} സംബന്ധിച്ച ആദ്യ നിഗമനം)`,
+            `ഓപ്ഷൻ B (ശരിയായ ഉത്തരവും കൃത്യമായ വിശദീകരണവും)`,
+            `ഓപ്ഷൻ C (ഭാഗികമായി ശരിയായ പ്രസ്താവന)`,
+            `ഓപ്ഷൻ D (തെറ്റായ നിഗമനം)`
+          ],
+          correctIndex: 1,
+          explanation: `ഓപ്ഷൻ B ആണ് ശരിയായ ഉത്തരം. ${topic} എന്ന പാഠഭാഗത്ത് ഈ ആശയം വ്യക്തമായി പ്രതിപാദിക്കുന്നുണ്ട്.`
+        });
+      }
+    }
+
+    // Render Staging Editable Questions (Malayalam Content inside English UI cards)
+    function renderStagingQuestions() {
+      const container = document.getElementById('questions-list-container');
+      const summaryTextarea = document.getElementById('edit-summary');
+      
+      summaryTextarea.value = STAGING_SUMMARY.join("\n• ");
+
+      if (STAGING_QUESTIONS.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-8 text-slate-400 text-xs">
+            No questions generated yet. Choose a subject above and click Generate.
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = STAGING_QUESTIONS.map((q, qIndex) => `
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-brand-700 bg-blue-50 px-2.5 py-1 rounded-lg">
+              Question ${qIndex + 1}
+            </span>
+            <button onclick="deleteStagingQuestion(${qIndex})" class="text-xs text-rose-600 hover:text-rose-800 font-semibold flex items-center gap-1">
+              <i class="ph-bold ph-trash"></i> Delete
+            </button>
+          </div>
+
+          <!-- Question Stem (Editable) -->
+          <div>
+            <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Question Stem (Malayalam / Content)</label>
+            <input type="text" value="${escapeHtml(q.stem)}" oninput="updateStagingStem(${qIndex}, this.value)" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-900 font-vernacular focus:ring-2 focus:ring-brand-500 focus:outline-none">
+          </div>
+
+          <!-- Multiple Choice Options -->
+          <div class="space-y-2">
+            <label class="block text-[11px] font-bold text-slate-500 uppercase">Options (Select radio for Correct Answer Key)</label>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              ${q.options.map((opt, optIndex) => `
+                <div class="flex items-center gap-2 bg-slate-50 border ${q.correctIndex === optIndex ? 'border-emerald-500 bg-emerald-50/40' : 'border-slate-200'} rounded-xl p-2 px-3">
+                  <input type="radio" name="staging-correct-${qIndex}" ${q.correctIndex === optIndex ? 'checked' : ''} onchange="setStagingCorrect(${qIndex}, ${optIndex})" class="w-4 h-4 text-emerald-600 focus:ring-emerald-500 cursor-pointer">
+                  <span class="text-xs font-bold text-slate-500">${String.fromCharCode(65 + optIndex)}:</span>
+                  <input type="text" value="${escapeHtml(opt)}" oninput="updateStagingOption(${qIndex}, ${optIndex}, this.value)" class="flex-1 bg-transparent text-xs text-slate-800 font-vernacular focus:outline-none">
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Explanation / Rationale -->
+          <div>
+            <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Explanation / Rationale (Malayalam)</label>
+            <input type="text" value="${escapeHtml(q.explanation)}" oninput="updateStagingExplanation(${qIndex}, this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-700 font-vernacular focus:ring-2 focus:ring-brand-500 focus:outline-none">
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Inline staging updates
+    function updateStagingStem(qIdx, val) { STAGING_QUESTIONS[qIdx].stem = val; }
+    function updateStagingOption(qIdx, optIdx, val) { STAGING_QUESTIONS[qIdx].options[optIdx] = val; }
+    function setStagingCorrect(qIdx, optIdx) { 
+      STAGING_QUESTIONS[qIdx].correctIndex = optIdx; 
+      renderStagingQuestions();
+    }
+    function updateStagingExplanation(qIdx, val) { STAGING_QUESTIONS[qIdx].explanation = val; }
+    function deleteStagingQuestion(qIdx) {
+      STAGING_QUESTIONS.splice(qIdx, 1);
+      renderStagingQuestions();
+      showToast("Question deleted from review staging");
+    }
+    function addNewBlankQuestion() {
+      STAGING_QUESTIONS.push({
+        stem: "പുതിയ ചോദ്യം നൽകുക...",
+        options: ["ഓപ്ഷൻ A", "ഓപ്ഷൻ B", "ഓപ്ഷൻ C", "ഓപ്ഷൻ D"],
+        correctIndex: 0,
+        explanation: "വിശദീകരണം ഇവിടെ നൽകുക."
+      });
+      renderStagingQuestions();
+      showToast("Blank question added to list");
+    }
+
+    /* ========================================================
+       REPOSITORY / QUESTION ARCHIVE MANAGEMENT
+       ======================================================== */
+    function saveToRepository(subject, topic, questions, summary) {
+      QUESTION_BANK.unshift({
+        id: "repo-" + Date.now(),
+        subject: subject,
+        topicTitle: topic,
+        createdDate: new Date().toISOString().split('T')[0],
+        summaryNotes: summary,
+        questions: JSON.parse(JSON.stringify(questions))
+      });
+      renderRepositoryCards();
+    }
+
+    function renderRepositoryCards(filterSubject = 'All') {
+      const container = document.getElementById('repo-topics-grid');
+      let filtered = QUESTION_BANK;
+      if (filterSubject !== 'All') {
+        filtered = QUESTION_BANK.filter(q => q.subject === filterSubject);
+      }
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-3 text-center py-10 bg-slate-50 rounded-2xl border border-dashed border-slate-300 text-xs text-slate-500">
+            No questions saved under "${filterSubject}" yet.
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filtered.map(item => `
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs hover:border-brand-300 transition flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase bg-blue-50 text-brand-700 border border-blue-100">
+                ${item.subject}
+              </span>
+              <span class="text-[11px] text-slate-400">${item.createdDate}</span>
+            </div>
+            <h4 class="text-sm font-bold text-slate-900 font-vernacular">${item.topicTitle}</h4>
+            <p class="text-xs text-slate-500 mt-1">${item.questions.length} Questions Verified & Stored</p>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+            <button onclick="loadFromRepoToStaging('${item.id}')" class="text-xs text-brand-600 font-bold hover:text-brand-800 flex items-center gap-1">
+              <i class="ph-bold ph-arrow-counter-clockwise"></i> Load to Editor
+            </button>
+            <button onclick="quickScheduleFromRepo('${item.id}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-lg transition">
+              Schedule Test
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function filterRepository(sub) {
+      document.querySelectorAll('#repo-subject-filters button').forEach(b => {
+        if (b.innerText.includes(sub)) {
+          b.className = "px-3 py-1 rounded-lg text-xs font-bold bg-brand-600 text-white";
+        } else {
+          b.className = "px-3 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200";
+        }
+      });
+      renderRepositoryCards(sub);
+    }
+
+    function loadFromRepoToStaging(repoId) {
+      const found = QUESTION_BANK.find(i => i.id === repoId);
+      if (found) {
+        STAGING_QUESTIONS = JSON.parse(JSON.stringify(found.questions));
+        STAGING_SUMMARY = [...found.summaryNotes];
+        setAdminTab('generator');
+        renderStagingQuestions();
+        showToast(`Loaded "${found.topicTitle}" into Verification Editor`);
+      }
+    }
+
+    function generateCombinedMockFromRepo() {
+      // Pick questions from all stored topics
+      let pooled = [];
+      QUESTION_BANK.forEach(topic => {
+        topic.questions.forEach(q => {
+          pooled.push({
+            ...q,
+            stem: `[${topic.subject}] ${q.stem}`
+          });
+        });
+      });
+
+      if (pooled.length === 0) {
+        showToast("Repository is empty. Generate topics first!");
+        return;
+      }
+
+      // Shuffle and pick up to 15
+      pooled = pooled.sort(() => 0.5 - Math.random()).slice(0, 15);
+      STAGING_QUESTIONS = pooled;
+      STAGING_SUMMARY = [
+        "എല്ലാ വിഷയങ്ങളും സംയോജിപ്പിച്ചുകൊണ്ടുള്ള സമഗ്ര മോഡൽ പരീക്ഷ.",
+        "വിവിധ വിഷയങ്ങളിലെ മുൻഗണനാ ചോദ്യങ്ങൾ ശ്രദ്ധയോടെ വായിച്ചു ഉത്തരം നൽകുക."
+      ];
+
+      setAdminTab('generator');
+      renderStagingQuestions();
+      showToast(`Created Combined Mega Mock with ${pooled.length} questions from Repository!`);
+    }
+
+    /* ========================================================
+       SCHEDULE EXAM MODAL LOGIC
+       ======================================================== */
+    function openScheduleModal() {
+      if (STAGING_QUESTIONS.length === 0) {
+        showToast("Please generate or add questions first before scheduling.");
+        return;
+      }
+      const subject = document.getElementById('gen-subject').value;
+      const topic = document.getElementById('gen-topic').value || "Daily Mock Exam";
+      
+      document.getElementById('modal-exam-title').value = `${subject} Mock: ${topic}`;
+      document.getElementById('modal-exam-date').value = new Date().toISOString().split('T')[0];
+      document.getElementById('modal-schedule').classList.remove('hidden');
+    }
+
+    function closeScheduleModal() {
+      document.getElementById('modal-schedule').classList.add('hidden');
+    }
+
+    function commitScheduledExam() {
+      const title = document.getElementById('modal-exam-title').value.trim();
+      const duration = parseInt(document.getElementById('modal-exam-duration').value) || 15;
+      const date = document.getElementById('modal-exam-date').value;
+      const subject = document.getElementById('gen-subject').value;
+
+      const summaryText = document.getElementById('edit-summary').value;
+      const summaryList = summaryText.split('\n').map(s => s.replace(/^[•\-\*]\s*/, '').trim()).filter(Boolean);
+
+      const newExam = {
+        id: "exam-" + Date.now(),
+        title: title,
+        subject: subject,
+        duration: duration,
+        date: date,
+        status: "Active",
+        summaryNotes: summaryList.length > 0 ? summaryList : ["ഈ പരീക്ഷയ്ക്കുള്ള സംക്ഷിപ്ത കുറിപ്പുകൾ വായിക്കുക."],
+        questions: JSON.parse(JSON.stringify(STAGING_QUESTIONS))
+      };
+
+      SCHEDULED_EXAMS.unshift(newExam);
+      closeScheduleModal();
+      document.getElementById('stat-active-exams').innerText = SCHEDULED_EXAMS.length;
+      renderScheduledExamsAdmin();
+      showToast(`Exam "${title}" successfully scheduled for students!`);
+    }
+
+    function renderScheduledExamsAdmin() {
+      const container = document.getElementById('admin-scheduled-exams-container');
+      if (SCHEDULED_EXAMS.length === 0) {
+        container.innerHTML = `<div class="text-center py-6 text-slate-400 text-xs">No scheduled exams.</div>`;
+        return;
+      }
+
+      container.innerHTML = SCHEDULED_EXAMS.map(ex => `
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-blue-50 text-brand-600 flex items-center justify-center font-bold">
+              <i class="ph-bold ph-calendar-check text-lg"></i>
+            </div>
+            <div>
+              <h4 class="text-sm font-bold text-slate-900">${ex.title}</h4>
+              <p class="text-xs text-slate-500">${ex.subject} • ${ex.questions.length} MCQs • ${ex.duration} Mins • Date: ${ex.date}</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="px-2.5 py-1 text-xs font-bold rounded-full ${ex.status === 'Active' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700'}">
+              ${ex.status}
+            </span>
+            <button onclick="deleteScheduledExam('${ex.id}')" class="text-xs text-rose-600 hover:text-rose-800 font-semibold p-1.5">
+              <i class="ph-bold ph-trash text-base"></i>
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function deleteScheduledExam(id) {
+      SCHEDULED_EXAMS = SCHEDULED_EXAMS.filter(e => e.id !== id);
+      document.getElementById('stat-active-exams').innerText = SCHEDULED_EXAMS.length;
+      renderScheduledExamsAdmin();
+      showToast("Scheduled exam deleted");
+    }
+
+    /* ========================================================
+       STUDENTS & MENTOR ALLOCATION TABLE
+       ======================================================== */
+    function renderStudentsTable() {
+      const search = (document.getElementById('student-search-input')?.value || '').toLowerCase();
+      const tbody = document.getElementById('admin-students-tbody');
+
+      let filtered = STUDENTS.filter(s => 
+        s.name.toLowerCase().includes(search) || 
+        s.roll.toLowerCase().includes(search) ||
+        s.class.toLowerCase().includes(search)
+      );
+
+      tbody.innerHTML = filtered.map(s => {
+        const assignedMentor = MENTORS.find(m => m.id === s.mentorId)?.name || 'Unassigned';
+        return `
+          <tr class="hover:bg-slate-50/70 transition">
+            <td class="py-3 px-4 font-mono font-bold text-slate-700">#${s.roll}</td>
+            <td class="py-3 px-4 font-semibold text-slate-900">${s.name}</td>
+            <td class="py-3 px-4 text-slate-600">${s.class}</td>
+            <td class="py-3 px-4">
+              <select onchange="reassignMentor('${s.id}', this.value)" class="bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs text-slate-800 font-medium focus:ring-1 focus:ring-brand-500 focus:outline-none">
+                ${MENTORS.map(m => `<option value="${m.id}" ${m.id === s.mentorId ? 'selected' : ''}>${m.name}</option>`).join('')}
+              </select>
+            </td>
+            <td class="py-3 px-4 font-bold text-slate-700">${s.testsTaken} Tests</td>
+            <td class="py-3 px-4">
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${s.avgAccuracy >= 85 ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+                ${s.avgAccuracy}%
+              </span>
+            </td>
+            <td class="py-3 px-4 text-right">
+              <button onclick="loginAsStudent('${s.id}')" class="text-xs text-brand-600 hover:text-brand-800 font-bold">
+                Login as Student
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function reassignMentor(studentId, mentorId) {
+      const student = STUDENTS.find(s => s.id === studentId);
+      if (student) {
+        student.mentorId = mentorId;
+        showToast(`Mentor updated for ${student.name}`);
+      }
+    }
+
+    function loginAsStudent(studentId) {
+      const student = STUDENTS.find(s => s.id === studentId);
+      if (student) {
+        CURRENT_STUDENT = student;
+        switchRole('student');
+      }
+    }
+
+    /* ========================================================
+       STUDENT EXAM ENGINE (ENGLISH UI + MALAYALAM QUESTIONS)
+       ======================================================== */
+    function renderStudentDashboard() {
+      document.getElementById('student-greeting').innerText = `Welcome, ${CURRENT_STUDENT.name}`;
+      const mentorObj = MENTORS.find(m => m.id === CURRENT_STUDENT.mentorId);
+      document.getElementById('student-assigned-mentor-name').innerText = mentorObj ? mentorObj.name : "Assigned Mentor";
+      document.getElementById('student-overall-accuracy').innerText = `${CURRENT_STUDENT.avgAccuracy}%`;
+
+      // Hide Arena, show tests grid
+      document.getElementById('student-exam-arena').classList.add('hidden');
+      document.getElementById('student-exams-dashboard').classList.remove('hidden');
+
+      const container = document.getElementById('student-available-tests-grid');
+      container.innerHTML = SCHEDULED_EXAMS.map(exam => `
+        <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs hover:shadow-md transition flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-brand-800">
+                ${exam.subject}
+              </span>
+              <span class="text-xs font-semibold text-emerald-700 flex items-center gap-1">
+                <i class="ph-bold ph-circle text-[8px] fill-emerald-500"></i> ${exam.status}
+              </span>
+            </div>
+            <h3 class="text-base font-bold text-slate-900 leading-snug">${exam.title}</h3>
+            <p class="text-xs text-slate-500 mt-2 flex items-center gap-3">
+              <span><i class="ph-bold ph-list-numbers mr-1"></i>${exam.questions.length} MCQs</span>
+              <span><i class="ph-bold ph-timer mr-1"></i>${exam.duration} Minutes</span>
+            </p>
+          </div>
+
+          <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
+            <span class="text-[11px] text-slate-400 font-medium">Daily Mock Series</span>
+            <button onclick="startExamPreparation('${exam.id}')" class="bg-brand-600 hover:bg-brand-700 text-white font-bold px-4 py-2 rounded-xl text-xs shadow-xs transition flex items-center gap-1.5">
+              <span>Attend Exam</span>
+              <i class="ph-bold ph-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Step 1: Open Pre-Quiz Summary Stage
+    function startExamPreparation(examId) {
+      ACTIVE_EXAM = SCHEDULED_EXAMS.find(e => e.id === examId);
+      if (!ACTIVE_EXAM) return;
+
+      STUDENT_ANSWERS = {};
+      MARKED_FOR_REVIEW = {};
+      QUIZ_CURRENT_INDEX = 0;
+
+      document.getElementById('student-exams-dashboard').classList.add('hidden');
+      document.getElementById('student-exam-arena').classList.remove('hidden');
+
+      // Show Stage A (Summary Card)
+      document.getElementById('student-summary-stage').classList.remove('hidden');
+      document.getElementById('student-quiz-stage').classList.add('hidden');
+      document.getElementById('student-result-stage').classList.add('hidden');
+
+      // Populate Summary
+      document.getElementById('active-summary-badge').innerText = ACTIVE_EXAM.subject;
+      document.getElementById('active-summary-title').innerText = ACTIVE_EXAM.title;
+
+      const bulletsContainer = document.getElementById('active-summary-bullets');
+      bulletsContainer.innerHTML = ACTIVE_EXAM.summaryNotes.map(bullet => `
+        <div class="flex items-start gap-2.5">
+          <i class="ph-bold ph-caret-right text-amber-600 text-lg flex-shrink-0 mt-0.5"></i>
+          <p class="text-slate-800">${bullet}</p>
+        </div>
+      `).join('');
+    }
+
+    // Step 2: Skip / Proceed to Live Testing
+    function skipSummaryAndStartExam() {
+      document.getElementById('student-summary-stage').classList.add('hidden');
+      document.getElementById('student-quiz-stage').classList.remove('hidden');
+
+      // Setup Timer
+      REMAINING_SECONDS = ACTIVE_EXAM.duration * 60;
+      updateTimerDisplay();
+      clearInterval(QUIZ_TIMER_INTERVAL);
+      QUIZ_TIMER_INTERVAL = setInterval(() => {
+        REMAINING_SECONDS--;
+        updateTimerDisplay();
+        if (REMAINING_SECONDS <= 0) {
+          clearInterval(QUIZ_TIMER_INTERVAL);
+          showToast("Time expired! Automatically submitting your test.");
+          submitExamEvaluation();
+        }
+      }, 1000);
+
+      renderActiveQuizQuestion();
+      renderQuizPalette();
+    }
+
+    function updateTimerDisplay() {
+      const minutes = Math.floor(REMAINING_SECONDS / 60);
+      const seconds = REMAINING_SECONDS % 60;
+      document.getElementById('quiz-timer-display').innerText = 
+        `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+
+    // Render Active Question
+    function renderActiveQuizQuestion() {
+      const q = ACTIVE_EXAM.questions[QUIZ_CURRENT_INDEX];
+      const total = ACTIVE_EXAM.questions.length;
+
+      document.getElementById('quiz-subject-pill').innerText = ACTIVE_EXAM.subject;
+      document.getElementById('quiz-current-idx').innerText = QUIZ_CURRENT_INDEX + 1;
+      document.getElementById('quiz-total-count').innerText = total;
+
+      const questionStem = document.getElementById('quiz-question-text');
+      questionStem.innerText = q.stem;
+
+      // Adjust typography class based on subject
+      if (ACTIVE_EXAM.subject === 'Arabic') {
+        questionStem.className = "text-lg font-bold text-slate-900 leading-relaxed font-arabic-text";
+      } else if (ACTIVE_EXAM.subject === 'Urdu') {
+        questionStem.className = "text-lg font-bold text-slate-900 leading-relaxed font-urdu-text";
+      } else if (ACTIVE_EXAM.subject === 'Hindi' || ACTIVE_EXAM.subject === 'Sanskrit') {
+        questionStem.className = "text-base font-bold text-slate-900 leading-relaxed font-devanagari-text";
+      } else {
+        questionStem.className = "text-base sm:text-lg font-bold text-slate-900 leading-relaxed font-vernacular";
+      }
+
+      // Options
+      const optionsContainer = document.getElementById('quiz-options-container');
+      optionsContainer.innerHTML = q.options.map((opt, optIdx) => {
+        const isSelected = STUDENT_ANSWERS[QUIZ_CURRENT_INDEX] === optIdx;
+        return `
+          <label onclick="selectAnswer(${optIdx})" class="flex items-center gap-3.5 p-3.5 rounded-2xl border cursor-pointer transition ${isSelected ? 'border-brand-600 bg-brand-50/70 shadow-xs' : 'border-slate-200 bg-slate-50/50 hover:bg-slate-100/70'}">
+            <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${isSelected ? 'border-brand-600 bg-brand-600 text-white' : 'border-slate-300 bg-white'}">
+              <span class="text-xs font-bold">${String.fromCharCode(65 + optIdx)}</span>
+            </div>
+            <span class="text-sm text-slate-800 font-vernacular flex-1">${opt}</span>
+          </label>
+        `;
+      }).join('');
+
+      // Update Nav Buttons
+      document.getElementById('btn-quiz-prev').disabled = QUIZ_CURRENT_INDEX === 0;
+      document.getElementById('btn-quiz-next').innerText = QUIZ_CURRENT_INDEX === total - 1 ? "Review" : "Next";
+
+      // Mark for review button state
+      const markBtn = document.getElementById('btn-quiz-mark');
+      if (MARKED_FOR_REVIEW[QUIZ_CURRENT_INDEX]) {
+        markBtn.className = "px-4 py-2 border border-amber-500 text-white bg-amber-500 font-bold rounded-xl text-xs transition flex items-center gap-1.5";
+      } else {
+        markBtn.className = "px-4 py-2 border border-amber-300 text-amber-700 bg-amber-50 font-bold rounded-xl text-xs hover:bg-amber-100 transition flex items-center gap-1.5";
+      }
+
+      renderQuizPalette();
+    }
+
+    function selectAnswer(optIdx) {
+      STUDENT_ANSWERS[QUIZ_CURRENT_INDEX] = optIdx;
+      renderActiveQuizQuestion();
+    }
+
+    function toggleMarkForReview() {
+      MARKED_FOR_REVIEW[QUIZ_CURRENT_INDEX] = !MARKED_FOR_REVIEW[QUIZ_CURRENT_INDEX];
+      renderActiveQuizQuestion();
+    }
+
+    function nextQuestion() {
+      if (QUIZ_CURRENT_INDEX < ACTIVE_EXAM.questions.length - 1) {
+        QUIZ_CURRENT_INDEX++;
+        renderActiveQuizQuestion();
+      }
+    }
+
+    function prevQuestion() {
+      if (QUIZ_CURRENT_INDEX > 0) {
+        QUIZ_CURRENT_INDEX--;
+        renderActiveQuizQuestion();
+      }
+    }
+
+    function jumpToQuestion(index) {
+      QUIZ_CURRENT_INDEX = index;
+      renderActiveQuizQuestion();
+    }
+
+    function renderQuizPalette() {
+      const palette = document.getElementById('quiz-palette-grid');
+      palette.innerHTML = ACTIVE_EXAM.questions.map((_, idx) => {
+        const isCurrent = idx === QUIZ_CURRENT_INDEX;
+        const isAnswered = STUDENT_ANSWERS.hasOwnProperty(idx);
+        const isMarked = MARKED_FOR_REVIEW[idx];
+
+        let bgClass = "bg-slate-100 text-slate-700 border-slate-200";
+        if (isAnswered) bgClass = "bg-emerald-600 text-white border-emerald-600";
+        if (isMarked) bgClass = "bg-amber-500 text-white border-amber-500";
+        if (isCurrent) bgClass += " ring-2 ring-brand-500 ring-offset-2";
+
+        return `
+          <button onclick="jumpToQuestion(${idx})" class="w-8 h-8 rounded-xl font-bold text-xs flex items-center justify-center transition border ${bgClass}">
+            ${idx + 1}
+          </button>
+        `;
+      }).join('');
+    }
+
+    function confirmSubmitQuiz() {
+      const answeredCount = Object.keys(STUDENT_ANSWERS).length;
+      const total = ACTIVE_EXAM.questions.length;
+      if (confirm(`You have answered ${answeredCount} of ${total} questions. Are you ready to submit the exam?`)) {
+        clearInterval(QUIZ_TIMER_INTERVAL);
+        submitExamEvaluation();
+      }
+    }
+
+    // Step 3: Evaluation & Result Dashboard
+    function submitExamEvaluation() {
+      document.getElementById('student-quiz-stage').classList.add('hidden');
+      document.getElementById('student-result-stage').classList.remove('hidden');
+
+      let correctCount = 0;
+      ACTIVE_EXAM.questions.forEach((q, idx) => {
+        if (STUDENT_ANSWERS[idx] === q.correctIndex) {
+          correctCount++;
+        }
+      });
+
+      const total = ACTIVE_EXAM.questions.length;
+      const accuracy = Math.round((correctCount / total) * 100);
+
+      document.getElementById('result-exam-title').innerText = ACTIVE_EXAM.title;
+      document.getElementById('result-score-display').innerText = `${correctCount} / ${total}`;
+      document.getElementById('result-accuracy-display').innerText = `${accuracy}%`;
+
+      // Update student record
+      CURRENT_STUDENT.testsTaken += 1;
+      CURRENT_STUDENT.avgAccuracy = Math.round((CURRENT_STUDENT.avgAccuracy + accuracy) / 2);
+
+      // Render Question Key Review with Malayalam explanations
+      const reviewContainer = document.getElementById('result-review-list');
+      reviewContainer.innerHTML = ACTIVE_EXAM.questions.map((q, idx) => {
+        const studentChoice = STUDENT_ANSWERS[idx];
+        const isCorrect = studentChoice === q.correctIndex;
+        return `
+          <div class="border rounded-2xl p-4 ${isCorrect ? 'border-emerald-200 bg-emerald-50/20' : 'border-rose-200 bg-rose-50/20'} space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-500">Question ${idx + 1}</span>
+              <span class="text-xs font-bold px-2.5 py-0.5 rounded-full ${isCorrect ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">
+                ${isCorrect ? 'Correct (+1)' : 'Incorrect (0)'}
+              </span>
+            </div>
+            <p class="text-sm font-bold text-slate-900 font-vernacular">${q.stem}</p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-vernacular pt-1">
+              ${q.options.map((opt, optIdx) => {
+                let style = "bg-slate-50 border-slate-200 text-slate-700";
+                if (optIdx === q.correctIndex) style = "bg-emerald-100 border-emerald-300 font-bold text-emerald-900";
+                else if (optIdx === studentChoice && !isCorrect) style = "bg-rose-100 border-rose-300 font-bold text-rose-900";
+                return `
+                  <div class="p-2 rounded-xl border ${style} flex items-center gap-2">
+                    <span class="font-bold">${String.fromCharCode(65 + optIdx)}:</span>
+                    <span>${opt}</span>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+
+            <!-- Explanation / Rationale -->
+            <div class="mt-2 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 font-vernacular leading-relaxed">
+              <strong class="text-slate-900">വിശദീകരണം (Rationale):</strong> ${q.explanation}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function returnToStudentDashboard() {
+      document.getElementById('student-exam-arena').classList.add('hidden');
+      document.getElementById('student-exams-dashboard').classList.remove('hidden');
+      renderStudentDashboard();
+    }
+
+    /* ========================================================
+       MENTOR DASHBOARD
+       ======================================================== */
+    function renderMentorDashboard() {
+      document.getElementById('mentor-welcome-name').innerText = CURRENT_MENTOR.name;
+      renderMentorTable();
+    }
+
+    function renderMentorTable() {
+      const search = (document.getElementById('mentor-search-mentee')?.value || '').toLowerCase();
+      const tbody = document.getElementById('mentor-mentees-tbody');
+
+      let mentees = STUDENTS.filter(s => s.mentorId === CURRENT_MENTOR.id);
+      if (search) {
+        mentees = mentees.filter(s => s.name.toLowerCase().includes(search) || s.roll.includes(search));
+      }
+
+      if (mentees.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-slate-400">No mentees found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = mentees.map(m => `
+        <tr class="hover:bg-slate-50 transition">
+          <td class="py-3 px-4 font-mono font-bold text-slate-700">#${m.roll}</td>
+          <td class="py-3 px-4 font-bold text-slate-900">${m.name} (${m.class})</td>
+          <td class="py-3 px-4">
+            <span class="text-emerald-700 font-semibold flex items-center gap-1">
+              <i class="ph-bold ph-check-circle"></i> Regular
+            </span>
+          </td>
+          <td class="py-3 px-4 font-semibold text-slate-700">${m.testsTaken} Mocks</td>
+          <td class="py-3 px-4">
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold ${m.avgAccuracy >= 85 ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+              ${m.avgAccuracy}%
+            </span>
+          </td>
+          <td class="py-3 px-4 text-slate-600 font-medium">
+            <span class="bg-slate-100 px-2 py-0.5 rounded-md text-[11px] font-semibold">${m.weakSubject}</span>
+          </td>
+          <td class="py-3 px-4 text-right">
+            <button onclick="sendMentorFeedback('${m.name}')" class="text-xs bg-brand-50 hover:bg-brand-100 text-brand-700 font-bold px-3 py-1.5 rounded-xl border border-brand-200 transition">
+              Send Feedback
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function sendMentorFeedback(studentName) {
+      const msg = prompt(`Enter guidance note or feedback for ${studentName}:`, "Keep practicing Basic Science unit tests regularly!");
+      if (msg) {
+        showToast(`Feedback message sent to ${studentName}`);
+      }
+    }
+
+    /* ========================================================
+       UTILITIES & TOAST ALERTS
+       ======================================================== */
+    function showToast(message) {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = "bg-slate-900 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-lg border border-slate-700 flex items-center gap-2 pointer-events-auto transform transition duration-300 translate-y-2 opacity-0";
+      toast.innerHTML = `<i class="ph-bold ph-info text-blue-400"></i><span>${message}</span>`;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      }, 10);
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    // Initialize Application
+    window.onload = function() {
+      switchRole('admin');
+    };
+  </script>
+</body>
+</html>
