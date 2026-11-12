@@ -193,9 +193,14 @@
                   + New Batch
                 </button>
               </div>
-              <p class="text-[11px] text-slate-500 mt-1.5">
-                Past batch student data & exam scores stay permanently archived even when starting a new batch.
-              </p>
+              <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
+                <p class="text-[11px] text-slate-500">
+                  Archived records stay preserved.
+                </p>
+                <button onclick="requestDeleteEntireBatch()" class="text-[11px] font-bold text-red-600 hover:underline">
+                  Delete Selected Batch
+                </button>
+              </div>
             </div>
           </div>
 
@@ -470,9 +475,12 @@
                 <span class="font-bold">Total Verified MCQs:</span>
                 <span id="verifiedQuestionCount" class="font-bold text-blue-600">0</span>
               </div>
-              <div class="flex items-center space-x-3 w-full sm:w-auto">
+              <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                <button id="btnUpdateExistingBank" onclick="updateExistingQuestionBank()" class="hidden flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-sm transition">
+                  Update Saved Bank
+                </button>
                 <button onclick="saveDraftToQuestionBank()" class="flex-1 sm:flex-none px-4 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-50 transition">
-                  Save to Repository
+                  Save as New Topic
                 </button>
                 <button onclick="publishAndScheduleExam()" class="flex-1 sm:flex-none px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md transition">
                   Approve & Publish Daily Mock
@@ -486,14 +494,14 @@
       </div>
 
       <!-- ======================================================== -->
-      <!-- ADMIN TAB 3: QUESTION BANK REPOSITORY                    -->
+      <!-- ADMIN TAB 3: QUESTION BANK & PUBLISHED EXAMS REPOSITORY  -->
       <!-- ======================================================== -->
       <div id="adminTabBank" class="hidden space-y-6">
         <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
             <div>
               <h3 class="text-base font-bold text-slate-900">Archived Topics & Question Bank</h3>
-              <p class="text-xs text-slate-500">All saved topics and questions are preserved permanently in Supabase.</p>
+              <p class="text-xs text-slate-500">Edit individual questions inside a topic bank or delete entire banks.</p>
             </div>
             <button onclick="buildCombinedMegaMock()" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-sm transition">
               Build Combined Multi-Subject Mock Exam
@@ -502,9 +510,15 @@
 
           <div id="questionBankGrid" class="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
         </div>
-      </div>
 
-    </div>
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="pb-4 border-b border-slate-100">
+            <h3 class="text-base font-bold text-slate-900">Published Daily Mock Exams</h3>
+            <p class="text-xs text-slate-500">Remove outdated scheduled exams from the student dashboard.</p>
+          </div>
+          <div id="publishedExamsAdminGrid" class="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </div>
+      </div>    </div>
 
     <!-- ========================================== -->
     <!-- 2. STUDENT PORTAL VIEW                     -->
@@ -760,6 +774,42 @@
     </div>
   </div>
 
+  <!-- ========================================== -->
+  <!-- MODAL: SPECIAL ADMIN DELETION PASSWORD     -->
+  <!-- ========================================== -->
+  <div id="deletePasswordModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-red-100">
+      <div class="flex items-center space-x-2.5 text-red-600">
+        <span class="text-xl">🔒</span>
+        <h3 class="text-base font-black text-slate-900">Special Admin Verification</h3>
+      </div>
+      <p id="deleteTargetSummaryText" class="text-xs text-slate-600 leading-relaxed">
+        Enter the Special Admin Deletion Password to permanently remove this record.
+      </p>
+      <div class="space-y-1.5">
+        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Master Deletion Password</label>
+        <input 
+          type="password" 
+          id="specialDeletePasswordInput" 
+          placeholder="Enter special admin password" 
+          class="w-full text-sm rounded-xl border-slate-300 bg-slate-50 border px-3.5 py-2.5 font-mono font-bold text-slate-900 focus:border-red-500 focus:ring-red-500"
+        />
+        <p class="text-[11px] font-semibold text-slate-400">Reset password locked in Supabase</p>
+      </div>
+      <div id="deletePasswordError" class="hidden p-2.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-bold text-center">
+        Incorrect Special Admin Password
+      </div>
+      <div class="flex justify-end space-x-2 pt-2">
+        <button type="button" onclick="closeDeletePasswordModal()" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50">
+          Cancel
+        </button>
+        <button type="button" onclick="confirmProtectedDeletion()" class="px-5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-sm">
+          Verify & Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- FOOTER -->
   <footer class="bg-white border-t border-slate-200 mt-auto py-4 text-center text-xs text-slate-400">
     <p>CMKids Scholarship Exam Preparation System • AKHMUP School Chathrathody (Estd. 1982)</p>
@@ -786,6 +836,8 @@
     let activeBatchYear = "2026-27";
     let selectedBatchFilter = "2026-27";
     let cloudGeminiApiKey = "";
+    let cloudDeletePassword = "";
+    let pendingProtectedDeleteAction = null;
 
     let allProfiles = [];
     let schoolDirectory = [];
@@ -826,7 +878,7 @@
       if (!supabaseClient) return;
 
       try {
-        // 1. App Settings (active_batch & gemini_api_key)
+        // 1. App Settings (active_batch, gemini_api_key & delete_password)
         const { data: settingsRows } = await supabaseClient.from("app_settings").select("*");
         if (settingsRows) {
           const batchRow = settingsRows.find(s => s.key === "active_batch");
@@ -837,6 +889,10 @@
           const keyRow = settingsRows.find(s => s.key === "gemini_api_key");
           if (keyRow && keyRow.value) {
             cloudGeminiApiKey = keyRow.value.trim();
+          }
+          const delRow = settingsRows.find(s => s.key === "delete_password");
+          if (delRow && delRow.value) {
+            cloudDeletePassword = delRow.value.trim();
           }
         }
 
@@ -1173,7 +1229,11 @@
       mentors.forEach(m => {
         const chip = document.createElement("span");
         chip.className = "inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-200 text-xs font-semibold text-indigo-900";
-        chip.innerHTML = `<span>${m.full_name}</span><span class="font-mono text-[10px] bg-white px-1.5 py-0.5 rounded border border-indigo-200 text-indigo-700">${m.login_id}</span>`;
+        chip.innerHTML = `
+          <span>${m.full_name}</span>
+          <span class="font-mono text-[10px] bg-white px-1.5 py-0.5 rounded border border-indigo-200 text-indigo-700">${m.login_id}</span>
+          <button type="button" onclick="requestDeleteMentor('${m.id}')" title="Delete Mentor" class="ml-1 text-red-500 hover:text-red-700 font-black">✕</button>
+        `;
         container.appendChild(chip);
       });
     }
@@ -1326,9 +1386,12 @@
               : `<span class="px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 font-semibold text-[11px]">Unassigned</span>`
             }
           </td>
-          <td class="p-3 text-right">
+          <td class="p-3 text-right space-x-1.5 whitespace-nowrap">
             <button onclick="openAssignMentorModal('${stu.id}')" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-blue-50 text-blue-700 font-bold text-xs border border-slate-200 transition">
               ${mentor ? "Change Mentor" : "Assign Mentor"}
+            </button>
+            <button onclick="requestDeleteStudent('${stu.id}')" class="px-2.5 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs border border-red-200 transition">
+              Delete
             </button>
           </td>
         `;
@@ -1745,11 +1808,12 @@ Strict Requirements:
     async function saveDraftToQuestionBank() {
       if (!currentAdminDraft || currentAdminDraft.questions.length === 0) return;
       const points = document.getElementById("editSummaryPoints").value.trim().split("\n").filter(Boolean);
+      const topicTitle = document.getElementById("genTopic").value.trim() || currentAdminDraft.topic;
 
       if (supabaseClient) {
         await supabaseClient.from("question_bank").insert([{
           subject: currentAdminDraft.subject,
-          topic_name: currentAdminDraft.topic,
+          topic_name: topicTitle,
           summary_points: points,
           questions: currentAdminDraft.questions
         }]);
@@ -1758,6 +1822,38 @@ Strict Requirements:
       await syncAllFromCloud();
       document.getElementById("repoCount").innerText = questionBank.length;
       alert("Saved permanently to Question Bank Repository!");
+    }
+
+    async function updateExistingQuestionBank() {
+      if (!currentAdminDraft || !currentAdminDraft.bankId) return;
+      if (currentAdminDraft.questions.length === 0) {
+        alert("Cannot save an empty question bank. Use 'Delete Bank' in the Repository tab to remove the entire topic.");
+        return;
+      }
+
+      const points = document.getElementById("editSummaryPoints").value.trim().split("\n").filter(Boolean);
+      const topicTitle = document.getElementById("genTopic").value.trim() || currentAdminDraft.topic;
+
+      if (supabaseClient) {
+        const { error } = await supabaseClient
+          .from("question_bank")
+          .update({
+            subject: currentAdminDraft.subject,
+            topic_name: topicTitle,
+            summary_points: points,
+            questions: currentAdminDraft.questions
+          })
+          .eq("id", currentAdminDraft.bankId);
+
+        if (error) {
+          alert("Error updating bank: " + error.message);
+          return;
+        }
+      }
+
+      await syncAllFromCloud();
+      document.getElementById("repoCount").innerText = questionBank.length;
+      alert(`Updated "${topicTitle}" (${currentAdminDraft.questions.length} MCQs) in Question Bank!`);
     }
 
     async function publishAndScheduleExam() {
@@ -1788,38 +1884,91 @@ Strict Requirements:
 
       if (questionBank.length === 0) {
         grid.innerHTML = `<p class="text-xs text-slate-400 col-span-3">No saved topics in repository yet.</p>`;
-        return;
+      } else {
+        questionBank.forEach((item, idx) => {
+          const card = document.createElement("div");
+          card.className = "p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-2.5 flex flex-col justify-between";
+          card.innerHTML = `
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-800">${item.subject}</span>
+                <span class="text-[11px] text-slate-500 font-semibold">${item.questions.length} MCQs</span>
+              </div>
+              <h4 class="text-sm font-bold text-slate-900">${item.topic}</h4>
+            </div>
+            <div class="flex items-center space-x-2 pt-2">
+              <button onclick="scheduleFromRepo(${idx})" class="flex-1 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition">
+                Edit / Manage
+              </button>
+              <button onclick="deleteQuestionBankTopic('${item.id}', '${escapeHtml(item.topic)}')" class="px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold transition">
+                Delete Bank
+              </button>
+            </div>
+          `;
+          grid.appendChild(card);
+        });
       }
 
-      questionBank.forEach((item, idx) => {
-        const card = document.createElement("div");
-        card.className = "p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-2";
-        card.innerHTML = `
-          <div class="flex items-center justify-between">
-            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-800">${item.subject}</span>
-            <span class="text-[11px] text-slate-500 font-semibold">${item.questions.length} MCQs</span>
-          </div>
-          <h4 class="text-sm font-bold text-slate-900">${item.topic}</h4>
-          <button onclick="scheduleFromRepo(${idx})" class="w-full mt-2 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition">
-            Load into Exam Editor
-          </button>
-        `;
-        grid.appendChild(card);
-      });
+      // Render Published Exams list for cleanup
+      const examGrid = document.getElementById("publishedExamsAdminGrid");
+      if (examGrid) {
+        examGrid.innerHTML = "";
+        if (scheduledExams.length === 0) {
+          examGrid.innerHTML = `<p class="text-xs text-slate-400 col-span-3">No published exams currently active.</p>`;
+        } else {
+          scheduledExams.forEach(ex => {
+            const eCard = document.createElement("div");
+            eCard.className = "p-4 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-between gap-2";
+            eCard.innerHTML = `
+              <div>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">${ex.subject}</span>
+                <h4 class="text-sm font-bold text-slate-900 mt-1">${ex.title}</h4>
+                <p class="text-[11px] text-slate-500">${ex.questions.length} MCQs • ${ex.durationMinutes} Mins</p>
+              </div>
+              <button onclick="deleteScheduledExam('${ex.id}', '${escapeHtml(ex.title)}')" class="px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold transition shrink-0">
+                Delete
+              </button>
+            `;
+            examGrid.appendChild(eCard);
+          });
+        }
+      }
+    }
+
+    async function deleteQuestionBankTopic(bankId, topicName) {
+      if (!confirm(`Delete the entire question bank "${topicName}"? This cannot be undone.`)) return;
+      if (supabaseClient) {
+        await supabaseClient.from("question_bank").delete().eq("id", bankId);
+      }
+      await syncAllFromCloud();
+      document.getElementById("repoCount").innerText = questionBank.length;
+      renderQuestionBank();
+    }
+
+    async function deleteScheduledExam(examId, examTitle) {
+      if (!confirm(`Delete published mock exam "${examTitle}" from student view?`)) return;
+      if (supabaseClient) {
+        await supabaseClient.from("scheduled_exams").delete().eq("id", examId);
+      }
+      await syncAllFromCloud();
+      renderQuestionBank();
     }
 
     function scheduleFromRepo(idx) {
       const item = questionBank[idx];
       const liveDuration = Math.max(1, parseInt(document.getElementById("genDuration").value) || 15);
       currentAdminDraft = {
+        bankId: item.id,
         subject: item.subject,
         topic: item.topic,
         durationMinutes: liveDuration,
         summaryPoints: item.summaryPoints || [],
-        questions: item.questions || []
+        questions: JSON.parse(JSON.stringify(item.questions || []))
       };
       document.getElementById("genSubject").value = item.subject;
       document.getElementById("genTopic").value = item.topic;
+      const updateBtn = document.getElementById("btnUpdateExistingBank");
+      if (updateBtn) updateBtn.classList.remove("hidden");
       switchAdminTab("generate");
       renderAdminEditor(currentAdminDraft);
     }
@@ -1839,11 +1988,113 @@ Strict Requirements:
         summaryPoints: ["Comprehensive CMKids scholarship model exam covering multiple subjects."],
         questions: combinedQ
       };
+      const updateBtn = document.getElementById("btnUpdateExistingBank");
+      if (updateBtn) updateBtn.classList.add("hidden");
       document.getElementById("genSubject").value = "Combined Mock Exam";
       document.getElementById("genTopic").value = currentAdminDraft.topic;
       document.getElementById("genDuration").value = 45;
       switchAdminTab("generate");
       renderAdminEditor(currentAdminDraft);
+    }
+
+    // ============================================================
+    // PROTECTED DELETION (STUDENTS, MENTORS & PAST BATCHES)
+    // ============================================================
+    function openDeletePasswordModal(summaryText, onVerifiedCallback) {
+      pendingProtectedDeleteAction = onVerifiedCallback;
+      document.getElementById("deleteTargetSummaryText").innerText = summaryText;
+      document.getElementById("specialDeletePasswordInput").value = "";
+      document.getElementById("deletePasswordError").classList.add("hidden");
+      document.getElementById("deletePasswordModal").classList.remove("hidden");
+      setTimeout(() => document.getElementById("specialDeletePasswordInput").focus(), 50);
+    }
+
+    function closeDeletePasswordModal() {
+      pendingProtectedDeleteAction = null;
+      document.getElementById("deletePasswordModal").classList.add("hidden");
+    }
+
+    async function confirmProtectedDeletion() {
+      const enteredPass = document.getElementById("specialDeletePasswordInput").value.trim();
+      const errBox = document.getElementById("deletePasswordError");
+
+      if (!cloudDeletePassword) {
+        errBox.innerText = "Special deletion password not configured in Supabase (app_settings).";
+        errBox.classList.remove("hidden");
+        return;
+      }
+
+      if (enteredPass !== cloudDeletePassword) {
+        errBox.innerText = "Incorrect Special Admin Password";
+        errBox.classList.remove("hidden");
+        return;
+      }
+
+      const action = pendingProtectedDeleteAction;
+      closeDeletePasswordModal();
+      if (action) await action();
+    }
+
+    function requestDeleteStudent(studentId) {
+      const stu = allProfiles.find(p => p.id === studentId);
+      if (!stu) return;
+
+      openDeletePasswordModal(
+        `Permanently delete student "${stu.full_name}" (Adm: ${stu.admission_no}, Batch: ${stu.batch_year || "2026-27"}) and all their exam records?`,
+        async () => {
+          if (supabaseClient) {
+            await supabaseClient.from("exam_attempts").delete().eq("student_id", studentId);
+            await supabaseClient.from("profiles").delete().eq("id", studentId);
+          }
+          await syncAllFromCloud();
+          renderBatchStudentsTable();
+          alert(`Student "${stu.full_name}" deleted.`);
+        }
+      );
+    }
+
+    function requestDeleteMentor(mentorId) {
+      const mentor = allProfiles.find(p => p.id === mentorId);
+      if (!mentor) return;
+
+      openDeletePasswordModal(
+        `Permanently delete mentor "${mentor.full_name}" (${mentor.login_id})? Assigned students will be kept and marked Unassigned.`,
+        async () => {
+          if (supabaseClient) {
+            await supabaseClient.from("profiles").update({ mentor_id: null }).eq("mentor_id", mentorId);
+            await supabaseClient.from("profiles").delete().eq("id", mentorId);
+          }
+          await syncAllFromCloud();
+          renderMentorsChips();
+          renderBatchStudentsTable();
+          alert(`Mentor "${mentor.full_name}" deleted.`);
+        }
+      );
+    }
+
+    function requestDeleteEntireBatch() {
+      const batchStudents = allProfiles.filter(
+        p => p.role === "student" && (p.batch_year || "2026-27") === selectedBatchFilter
+      );
+      if (batchStudents.length === 0) {
+        alert(`Batch "${selectedBatchFilter}" has no enrolled students to delete.`);
+        return;
+      }
+
+      openDeletePasswordModal(
+        `Permanently delete ALL ${batchStudents.length} students and exam attempts in Batch "${selectedBatchFilter}"?`,
+        async () => {
+          const ids = batchStudents.map(s => s.id);
+          if (supabaseClient) {
+            await supabaseClient.from("exam_attempts").delete().in("student_id", ids);
+            await supabaseClient.from("profiles").delete().in("id", ids);
+          }
+          await syncAllFromCloud();
+          refreshBatchDropdowns();
+          renderBatchStudentsTable();
+          alert(`All student records for Batch "${selectedBatchFilter}" have been deleted.`);
+        }
+      );
     }
 
     // ============================================================
