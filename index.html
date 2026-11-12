@@ -11,32 +11,20 @@
   <!-- Supabase JS Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <!-- Typography: Inter for English UI, Manjari for Malayalam, Amiri for Arabic, Noto Nastaliq Urdu for Urdu -->
+  <!-- SheetJS (XLSX) for Excel School Directory Upload -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <!-- Typography -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700&family=Manjari:wght@400;700&family=Noto+Nastaliq+Urdu:wght@400;700&family=Noto+Sans+Devanagari:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700;800;900&family=Manjari:wght@400;700&family=Noto+Nastaliq+Urdu:wght@400;700&family=Noto+Sans+Devanagari:wght@400;600&display=swap" rel="stylesheet">
 
   <style>
-    body {
-      font-family: 'Inter', sans-serif;
-    }
-    .malayalam-font {
-      font-family: 'Manjari', sans-serif;
-    }
-    .arabic-font {
-      font-family: 'Amiri', serif;
-      direction: rtl;
-    }
-    .urdu-font {
-      font-family: 'Noto Nastaliq Urdu', serif;
-      direction: rtl;
-    }
-    .devanagari-font {
-      font-family: 'Noto Sans Devanagari', sans-serif;
-    }
-    .badge-ring {
-      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
-    }
+    body { font-family: 'Inter', sans-serif; }
+    .malayalam-font { font-family: 'Manjari', sans-serif; }
+    .arabic-font { font-family: 'Amiri', serif; direction: rtl; }
+    .urdu-font { font-family: 'Noto Nastaliq Urdu', serif; direction: rtl; }
+    .devanagari-font { font-family: 'Noto Sans Devanagari', sans-serif; }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col antialiased">
@@ -71,26 +59,25 @@
         </div>
       </div>
 
-      <!-- Cloud DB Status & Role Switcher -->
+      <!-- Right Controls: Cloud Status & Active User Session -->
       <div class="flex items-center space-x-3">
-        <!-- Supabase Cloud Status Indicator -->
         <div id="cloudStatusBadge" class="hidden sm:inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
           <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
           <span>Cloud Connected</span>
         </div>
 
-        <!-- Role Selector Dropdown -->
-        <div class="bg-slate-100 p-1 rounded-xl flex items-center border border-slate-200">
-          <label for="roleSelector" class="text-xs font-semibold text-slate-500 px-2 hidden sm:inline-block">View As:</label>
-          <select 
-            id="roleSelector" 
-            onchange="switchRole(this.value)" 
-            class="bg-white border-0 text-xs sm:text-sm font-semibold rounded-lg text-slate-800 shadow-sm focus:ring-2 focus:ring-blue-600 px-3 py-1.5 cursor-pointer outline-none"
+        <!-- Logged-In User Badge & Logout -->
+        <div id="userSessionBar" class="hidden flex items-center space-x-3 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
+          <div class="text-right">
+            <p id="headerUserName" class="text-xs font-bold text-slate-900 leading-tight">User</p>
+            <p id="headerUserRole" class="text-[10px] font-bold uppercase tracking-wider text-blue-600">Role</p>
+          </div>
+          <button 
+            onclick="logoutUser()" 
+            class="px-2.5 py-1 rounded-lg bg-white hover:bg-red-50 text-red-600 border border-slate-200 text-xs font-bold transition"
           >
-            <option value="student">Student Portal</option>
-            <option value="admin">Admin Dashboard</option>
-            <option value="mentor">Mentor Portal</option>
-          </select>
+            Sign Out
+          </button>
         </div>
       </div>
 
@@ -101,125 +88,367 @@
   <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
     <!-- ========================================== -->
+    <!-- 0. STRICT ROLE-LOCKED LOGIN SCREEN         -->
+    <!-- ========================================== -->
+    <div id="authView" class="max-w-lg mx-auto my-8">
+      <div class="bg-white rounded-3xl border border-slate-200 shadow-xl p-6 sm:p-8 space-y-6">
+        
+        <div class="text-center space-y-1.5">
+          <span class="inline-block px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200">
+            AKHMUP School Chathrathody
+          </span>
+          <h2 class="text-2xl font-black text-slate-900">Select Your Portal</h2>
+          <p class="text-xs text-slate-500">Choose your category below and enter your assigned User ID.</p>
+        </div>
+
+        <!-- THREE ROLE SELECTION CARDS -->
+        <div class="grid grid-cols-3 gap-3">
+          <button 
+            type="button"
+            onclick="selectLoginRole('admin')" 
+            id="roleCardAdmin"
+            class="p-4 rounded-2xl border-2 border-slate-200 hover:border-blue-500 bg-slate-50/60 flex flex-col items-center justify-center space-y-2 transition group"
+          >
+            <span class="text-2xl">🛡️</span>
+            <span class="text-xs font-black tracking-wider text-slate-800 group-hover:text-blue-700">ADMIN</span>
+          </button>
+
+          <button 
+            type="button"
+            onclick="selectLoginRole('student')" 
+            id="roleCardStudent"
+            class="p-4 rounded-2xl border-2 border-slate-200 hover:border-blue-500 bg-slate-50/60 flex flex-col items-center justify-center space-y-2 transition group"
+          >
+            <span class="text-2xl">🎓</span>
+            <span class="text-xs font-black tracking-wider text-slate-800 group-hover:text-blue-700">STUDENT</span>
+          </button>
+
+          <button 
+            type="button"
+            onclick="selectLoginRole('mentor')" 
+            id="roleCardMentor"
+            class="p-4 rounded-2xl border-2 border-slate-200 hover:border-blue-500 bg-slate-50/60 flex flex-col items-center justify-center space-y-2 transition group"
+          >
+            <span class="text-2xl">👩‍🏫</span>
+            <span class="text-xs font-black tracking-wider text-slate-800 group-hover:text-blue-700">MENTOR</span>
+          </button>
+        </div>
+
+        <!-- SINGLE USER ID LOGIN PROMPT (Revealed when a role is clicked) -->
+        <form id="roleLoginForm" onsubmit="event.preventDefault(); executeRoleLogin();" class="hidden space-y-4 pt-2 border-t border-slate-100">
+          <div>
+            <label id="selectedRolePromptLabel" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+              Enter User ID
+            </label>
+            <input 
+              type="text" 
+              id="loginUserIdInput" 
+              placeholder="Enter your User ID" 
+              required 
+              autocomplete="off"
+              class="w-full text-base rounded-xl border-slate-300 focus:border-blue-600 focus:ring-blue-600 px-4 py-3 bg-slate-50 border font-mono font-bold text-slate-900"
+            />
+          </div>
+
+          <!-- Error Message ("User not found") -->
+          <div id="loginErrorBox" class="hidden p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-bold text-center">
+            User not found
+          </div>
+
+          <button 
+            type="submit" 
+            id="btnLoginSubmit"
+            class="w-full py-3.5 px-4 rounded-xl font-bold text-sm bg-blue-600 hover:bg-blue-700 text-white shadow-md transition"
+          >
+            Sign In →
+          </button>
+        </form>
+
+      </div>
+    </div>
+
+    <!-- ========================================== -->
     <!-- 1. ADMIN DASHBOARD VIEW                    -->
     <!-- ========================================== -->
     <div id="adminView" class="hidden space-y-8">
       
-      <!-- Top Overview Bar -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 gap-4">
+      <!-- Top Overview & Batch Control Bar -->
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <h2 class="text-xl font-bold text-slate-900">Admin Control Center</h2>
-          <p class="text-sm text-slate-500">Formulate questions, verify Malayalam translations, and publish daily mock exams.</p>
+          <div class="flex items-center space-x-2">
+            <h2 class="text-xl font-black text-slate-900">Admin Control Center</h2>
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+              Active Batch: <span id="activeBatchBadge">2026-27</span>
+            </span>
+          </div>
+          <p class="text-xs text-slate-500 mt-0.5">Manage batches, upload school Excel register, assign mentors, and schedule daily mock exams.</p>
         </div>
-        <div class="flex items-center space-x-3">
-          <button onclick="switchAdminTab('generate')" id="tabBtnGenerate" class="px-3.5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider bg-blue-600 text-white shadow-sm transition">
-            Create / Generate Exam
+
+        <div class="flex flex-wrap items-center gap-2">
+          <button onclick="switchAdminTab('enrollment')" id="tabBtnEnrollment" class="px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-blue-600 text-white shadow-sm transition">
+            Batch & Mentors
           </button>
-          <button onclick="switchAdminTab('bank')" id="tabBtnBank" class="px-3.5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
+          <button onclick="switchAdminTab('generate')" id="tabBtnGenerate" class="px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
+            Question Builder
+          </button>
+          <button onclick="switchAdminTab('bank')" id="tabBtnBank" class="px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
             Question Bank (<span id="repoCount">0</span>)
-          </button>
-          <button onclick="switchAdminTab('students')" id="tabBtnStudents" class="px-3.5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
-            Mentors & Students
           </button>
         </div>
       </div>
 
-      <!-- TAB 1: GENERATE & SCHEDULE -->
-      <div id="adminTabGenerate" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <!-- ======================================================== -->
+      <!-- ADMIN TAB 1: BATCH ENROLLMENT, EXCEL & MENTOR MAPPING    -->
+      <!-- ======================================================== -->
+      <div id="adminTabEnrollment" class="space-y-8">
         
-        <!-- Left Column: Topic & Source Input -->
-        <div class="lg:col-span-5 space-y-6">
-          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-            <h3 class="text-base font-bold text-slate-900 flex items-center space-x-2 pb-3 border-b border-slate-100">
-              <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-              <span>Topic & Question Generator</span>
+        <!-- ROW 1: Batch Year Management + School Excel Upload + Add Mentor -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          <!-- Card 1: Annual Batch Control -->
+          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+            <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2">
+              1. Batch Year Lifecycle
             </h3>
-
-            <form id="generatorForm" onsubmit="event.preventDefault(); triggerAIGeneration();" class="mt-4 space-y-4">
-              <!-- Subject Picker (Exact 10 Subjects + Combined) -->
-              <div>
-                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Subject</label>
-                <select id="genSubject" class="w-full text-sm rounded-xl border-slate-300 focus:border-blue-600 focus:ring-blue-600 px-3.5 py-2.5 bg-slate-50 border font-medium">
-                  <option value="Basic Science">Basic Science (അടിസ്ഥാന ശാസ്ത്രം)</option>
-                  <option value="Social Science">Social Science (സാമൂഹ്യശാസ്ത്രം)</option>
-                  <option value="Mathematics">Mathematics (ഗണിതം)</option>
-                  <option value="Malayalam 1st">Malayalam 1st (മലയാളം ഒന്നാം ഭാഷ)</option>
-                  <option value="Malayalam 2nd">Malayalam 2nd (മലയാളം രണ്ടാം ഭാഷ)</option>
-                  <option value="English">English</option>
-                  <option value="Hindi">Hindi (हिन्दी)</option>
-                  <option value="Urdu">Urdu (اردو)</option>
-                  <option value="Arabic">Arabic (العربية)</option>
-                  <option value="Sanskrit">Sanskrit (संस्कृतम्)</option>
-                  <option value="Combined Mock Exam">Combined Mock Exam (All Subjects Mixed)</option>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">Viewing / Active Batch</label>
+              <div class="flex space-x-2">
+                <select id="batchSelector" onchange="changeSelectedBatch(this.value)" class="flex-1 text-sm rounded-xl border-slate-300 bg-slate-50 border px-3 py-2 font-bold">
+                  <option value="2026-27">2026-27 (Current)</option>
                 </select>
-                <p class="text-[11px] text-slate-500 mt-1">Questions will be generated in Malayalam for all subjects except languages.</p>
+                <button onclick="createNewBatchYear()" class="px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold whitespace-nowrap">
+                  + New Batch
+                </button>
               </div>
+              <p class="text-[11px] text-slate-500 mt-1.5">
+                Past batch student data & exam scores stay permanently archived even when starting a new batch.
+              </p>
+            </div>
+          </div>
 
-              <!-- Topic Name -->
+          <!-- Card 2: Full School Excel Upload -->
+          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+              <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider">
+                2. School Excel Register
+              </h3>
+              <span class="text-[11px] font-bold text-blue-600"><span id="directoryCountBadge">0</span> in Directory</span>
+            </div>
+            <div class="space-y-2.5">
+              <input 
+                type="file" 
+                id="schoolExcelInput" 
+                accept=".xlsx,.xls,.csv"
+                onchange="handleSchoolExcelUpload(event)"
+                class="block w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+              />
+              <p class="text-[11px] text-slate-500">
+                Upload school Excel (.xlsx / .csv) with columns: <b>Admission No</b>, <b>Name</b>, <b>Class</b>.
+              </p>
+              <button 
+                onclick="clearSchoolDirectory()" 
+                class="text-[11px] font-bold text-red-600 hover:underline pt-1"
+              >
+                Clear Temporary School Directory (Keeps Batch Students)
+              </button>
+            </div>
+          </div>
+
+          <!-- Card 3: Add Mentor -->
+          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+            <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2">
+              3. Add Mentor
+            </h3>
+            <form onsubmit="event.preventDefault(); addNewMentor();" class="space-y-3">
               <div>
-                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Topic / Chapter Title</label>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Mentor Name</label>
+                <div class="flex space-x-2">
+                  <input 
+                    type="text" 
+                    id="newMentorNameInput" 
+                    placeholder="e.g., Minsar" 
+                    required
+                    class="flex-1 text-sm rounded-xl border-slate-300 bg-slate-50 border px-3 py-2 font-semibold"
+                  />
+                  <button type="submit" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold">
+                    Add
+                  </button>
+                </div>
+                <p class="text-[11px] text-slate-500 mt-1">
+                  Auto User ID: <span class="font-mono font-bold text-indigo-700">name19877</span> (e.g., minsar19877)
+                </p>
+              </div>
+            </form>
+            <!-- Registered Mentors Pill List -->
+            <div id="mentorsChipList" class="flex flex-wrap gap-1.5 pt-1"></div>
+          </div>
+
+        </div>
+
+        <!-- ROW 2: Search School Directory & Add Student to Current Batch -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
+            <div>
+              <h3 class="text-base font-bold text-slate-900">Search School Register & Enroll into Batch (<span id="searchTargetBatchLabel">2026-27</span>)</h3>
+              <p class="text-xs text-slate-500">Search by Admission Number or Student Name. Auto User ID format: <span class="font-mono font-bold text-blue-700">(admn_no)s19877</span></p>
+            </div>
+            <button onclick="openManualStudentModal()" class="px-3.5 py-2 rounded-xl border border-slate-300 hover:bg-slate-50 text-xs font-bold text-slate-700">
+              + Manual Add (Without Excel)
+            </button>
+          </div>
+
+          <div class="relative">
+            <input 
+              type="text" 
+              id="directorySearchInput" 
+              oninput="searchSchoolDirectory(this.value)"
+              placeholder="Type Admission Number (e.g. 1234) or Student Name..." 
+              class="w-full text-sm rounded-xl border-slate-300 focus:border-blue-600 focus:ring-blue-600 px-4 py-3 bg-slate-50 border font-semibold"
+            />
+          </div>
+
+          <!-- Search Results Container -->
+          <div id="directorySearchResults" class="space-y-2"></div>
+        </div>
+
+        <!-- ROW 3: Batch Registered Students List & Flexible Mentor Assignment -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
+            <div>
+              <h3 class="text-base font-bold text-slate-900">Batch Registered Students (<span id="batchStudentsCount">0</span>)</h3>
+              <p class="text-xs text-slate-500">Assign or change mentors anytime. Student test history stays intact across mentor changes.</p>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-600">
+              <thead class="bg-slate-50 text-slate-700 uppercase font-bold border-b border-slate-200">
+                <tr>
+                  <th class="p-3">Adm No.</th>
+                  <th class="p-3">Student Name</th>
+                  <th class="p-3">Class</th>
+                  <th class="p-3">Generated User ID</th>
+                  <th class="p-3">Assigned Mentor</th>
+                  <th class="p-3 text-right">Mentor Mapping</th>
+                </tr>
+              </thead>
+              <tbody id="batchStudentsTableBody" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- ADMIN TAB 2: QUESTION BUILDER & DAILY EXAM SCHEDULER     -->
+      <!-- ======================================================== -->
+      <div id="adminTabGenerate" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Left Column: Input Method -->
+        <div class="lg:col-span-5 space-y-6">
+          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+            
+            <div class="grid grid-cols-2 bg-slate-100 p-1 rounded-xl border border-slate-200">
+              <button type="button" onclick="setInputMode('bulk')" id="modeBtnBulk" class="py-1.5 rounded-lg text-xs font-bold bg-white text-blue-700 shadow-sm transition">
+                Paste Ready Questions
+              </button>
+              <button type="button" onclick="setInputMode('generate')" id="modeBtnGen" class="py-1.5 rounded-lg text-xs font-bold text-slate-600 transition">
+                Generate from Topic
+              </button>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Subject</label>
+              <select id="genSubject" class="w-full text-sm rounded-xl border-slate-300 px-3.5 py-2.5 bg-slate-50 border font-medium">
+                <option value="Basic Science">Basic Science (അടിസ്ഥാന ശാസ്ത്രം)</option>
+                <option value="Social Science">Social Science (സാമൂഹ്യശാസ്ത്രം)</option>
+                <option value="Mathematics">Mathematics (ഗണിതം)</option>
+                <option value="Malayalam 1st">Malayalam 1st (മലയാളം ഒന്നാം ഭാഷ)</option>
+                <option value="Malayalam 2nd">Malayalam 2nd (മലയാളം രണ്ടാം ഭാഷ)</option>
+                <option value="English">English</option>
+                <option value="Hindi">Hindi (हिन्दी)</option>
+                <option value="Urdu">Urdu (اردو)</option>
+                <option value="Arabic">Arabic (العربية)</option>
+                <option value="Sanskrit">Sanskrit (संस्कृतम्)</option>
+                <option value="Combined Mock Exam">Combined Mock Exam (All Subjects Mixed)</option>
+              </select>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3">
+              <div class="col-span-2">
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Topic / Exam Title</label>
                 <input 
                   type="text" 
                   id="genTopic" 
-                  placeholder="e.g., ജീവന്റെ തുടിപ്പുകൾ / Photosynthesis" 
+                  placeholder="e.g., ജീവന്റെ തുടിപ്പുകൾ" 
                   required 
-                  class="w-full text-sm rounded-xl border-slate-300 focus:border-blue-600 focus:ring-blue-600 px-3.5 py-2.5 bg-white border font-medium placeholder-slate-400"
+                  class="w-full text-sm rounded-xl border-slate-300 px-3.5 py-2 bg-white border font-medium"
                 />
               </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Duration</label>
+                <select id="genDuration" class="w-full text-sm rounded-xl border-slate-300 px-2.5 py-2 bg-slate-50 border font-medium">
+                  <option value="10">10 Min</option>
+                  <option value="15" selected>15 Min</option>
+                  <option value="30">30 Min</option>
+                  <option value="45">45 Min</option>
+                </select>
+              </div>
+            </div>
 
-              <!-- Question Count -->
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Number of MCQs</label>
-                  <select id="genCount" class="w-full text-sm rounded-xl border-slate-300 focus:border-blue-600 focus:ring-blue-600 px-3.5 py-2.5 bg-slate-50 border font-medium">
-                    <option value="5">5 Questions</option>
-                    <option value="10" selected>10 Questions</option>
-                    <option value="20">20 Questions</option>
-                    <option value="30">30 Questions</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Exam Duration</label>
-                  <select id="genDuration" class="w-full text-sm rounded-xl border-slate-300 focus:border-blue-600 focus:ring-blue-600 px-3.5 py-2.5 bg-slate-50 border font-medium">
-                    <option value="10">10 Minutes</option>
-                    <option value="15" selected>15 Minutes</option>
-                    <option value="30">30 Minutes</option>
-                    <option value="45">45 Minutes</option>
-                  </select>
-                </div>
+            <!-- MODE A: BULK PASTE READY QUESTIONS -->
+            <div id="bulkPasteSection" class="space-y-3">
+              <div class="flex items-center justify-between">
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Paste Ready MCQs</label>
+                <button type="button" onclick="fillSampleBulkText()" class="text-[11px] font-bold text-blue-600 hover:underline">Insert Format Example</button>
+              </div>
+              <textarea 
+                id="bulkQuestionsInput" 
+                rows="8" 
+                placeholder="1. ചോദ്യം ഇവിടെ പേസ്റ്റ് ചെയ്യുക?&#10;A) ഓപ്ഷൻ 1&#10;B) ഓപ്ഷൻ 2&#10;C) ഓപ്ഷൻ 3&#10;D) ഓപ്ഷൻ 4&#10;Ans: B&#10;Exp: വിശദീകരണം (Optional)" 
+                class="w-full text-xs rounded-xl border-slate-300 p-3 bg-white border malayalam-font leading-relaxed"
+              ></textarea>
+              <button 
+                type="button" 
+                onclick="parseBulkQuestions()" 
+                class="w-full py-3 px-4 rounded-xl font-bold text-sm bg-blue-600 hover:bg-blue-700 text-white shadow-md transition"
+              >
+                Load Questions into Editor →
+              </button>
+            </div>
+
+            <!-- MODE B: AUTO-GENERATE FROM TOPIC -->
+            <div id="autoGenerateSection" class="hidden space-y-4">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Number of MCQs</label>
+                <select id="genCount" class="w-full text-sm rounded-xl border-slate-300 px-3.5 py-2 bg-slate-50 border font-medium">
+                  <option value="5">5 Questions</option>
+                  <option value="10" selected>10 Questions</option>
+                  <option value="20">20 Questions</option>
+                  <option value="30">30 Questions</option>
+                </select>
               </div>
 
-              <!-- Source Syllabus / Raw Study Notes -->
               <div>
-                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Source Syllabus / Study Notes (Optional)</label>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Source Notes (Optional)</label>
                 <textarea 
                   id="genSourceText" 
                   rows="4" 
-                  placeholder="Paste textbook summary, notes, or chapter excerpt here for targeted MCQ extraction..." 
-                  class="w-full text-xs rounded-xl border-slate-300 focus:border-blue-600 focus:ring-blue-600 p-3 bg-white border placeholder-slate-400"
+                  placeholder="Paste chapter notes here..." 
+                  class="w-full text-xs rounded-xl border-slate-300 p-3 bg-white border"
                 ></textarea>
               </div>
 
-              <!-- Simulated File Upload -->
-              <div>
-                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Upload Notes / Syllabus PDF</label>
-                <input 
-                  type="file" 
-                  id="genFile" 
-                  accept=".pdf,.txt,.doc"
-                  class="block w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
-                />
-              </div>
-
-              <!-- Generate Button -->
               <button 
-                type="submit" 
+                type="button" 
                 id="btnGenerateQuestions"
-                class="w-full py-3 px-4 rounded-xl font-bold text-sm bg-blue-600 hover:bg-blue-700 text-white shadow-md flex items-center justify-center space-x-2 transition"
+                onclick="triggerAIGeneration()" 
+                class="w-full py-3 px-4 rounded-xl font-bold text-sm bg-blue-600 hover:bg-blue-700 text-white shadow-md transition"
               >
-                <span>Generate Questions & Summary</span>
+                Generate Questions & Summary
               </button>
-            </form>
+            </div>
+
           </div>
         </div>
 
@@ -229,37 +458,38 @@
             <div class="flex items-center justify-between pb-3 border-b border-slate-100">
               <div>
                 <h3 class="text-base font-bold text-slate-900">Verification & Question Editor</h3>
-                <p class="text-xs text-slate-500">Review, modify options, correct keys, and schedule the exam.</p>
+                <p class="text-xs text-slate-500">Verify questions, correct answer keys, and pre-exam study notes.</p>
               </div>
-              <span id="editorStatusBadge" class="text-xs px-2.5 py-1 rounded-full font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                Draft Mode
-              </span>
+              <button 
+                type="button" 
+                onclick="addBlankDraftQuestion()" 
+                class="px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold border border-blue-200 transition"
+              >
+                + Add Blank Question
+              </button>
             </div>
 
-            <!-- Pre-Quiz Summary Points Editor -->
             <div class="mt-4 p-4 rounded-xl bg-slate-50 border border-slate-200">
               <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
                 Student Revision Summary (സംക്ഷിപ്ത പഠനക്കുറിപ്പുകൾ)
               </label>
-              <p class="text-[11px] text-slate-500 mb-2">These quick points appear to students before starting the test.</p>
               <textarea 
                 id="editSummaryPoints" 
                 rows="3" 
-                class="w-full text-sm rounded-lg border-slate-300 p-2.5 bg-white border font-normal malayalam-font focus:ring-blue-600"
+                placeholder="Enter key study bullet points shown to students before starting the quiz..."
+                class="w-full text-sm rounded-lg border-slate-300 p-2.5 bg-white border font-normal malayalam-font"
               ></textarea>
             </div>
 
-            <!-- Questions Container -->
             <div class="mt-6 space-y-4" id="questionsEditorContainer">
               <div class="text-center py-12 text-slate-400">
-                <p class="text-sm">No questions generated yet. Choose a subject and topic on the left to start.</p>
+                <p class="text-sm">Paste ready questions on the left or click "+ Add Blank Question" above.</p>
               </div>
             </div>
 
-            <!-- Publish / Schedule Controls -->
             <div id="scheduleActionBar" class="hidden mt-6 pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
               <div class="flex items-center space-x-2 text-xs text-slate-600">
-                <span class="font-bold">Total MCQs:</span>
+                <span class="font-bold">Total Verified MCQs:</span>
                 <span id="verifiedQuestionCount" class="font-bold text-blue-600">0</span>
               </div>
               <div class="flex items-center space-x-3 w-full sm:w-auto">
@@ -273,7 +503,7 @@
                   onclick="publishAndScheduleExam()" 
                   class="flex-1 sm:flex-none px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md transition"
                 >
-                  Approve & Schedule Daily Mock
+                  Approve & Publish Daily Mock
                 </button>
               </div>
             </div>
@@ -283,52 +513,25 @@
 
       </div>
 
-      <!-- TAB 2: QUESTION BANK & TOPIC REPOSITORY -->
+      <!-- ======================================================== -->
+      <!-- ADMIN TAB 3: QUESTION BANK REPOSITORY                    -->
+      <!-- ======================================================== -->
       <div id="adminTabBank" class="hidden space-y-6">
         <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
             <div>
               <h3 class="text-base font-bold text-slate-900">Archived Topics & Question Bank</h3>
-              <p class="text-xs text-slate-500">All uploaded study materials and generated questions are permanently preserved here.</p>
+              <p class="text-xs text-slate-500">All saved topics and questions are preserved permanently in Supabase.</p>
             </div>
             <button 
               onclick="buildCombinedMegaMock()" 
-              class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-sm transition flex items-center space-x-1.5"
+              class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-sm transition"
             >
-              <span>Build Combined Multi-Subject Mock Exam</span>
+              Build Combined Multi-Subject Mock Exam
             </button>
           </div>
 
-          <!-- Stored Topics Grid -->
-          <div id="questionBankGrid" class="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <!-- Dynamically populated -->
-          </div>
-        </div>
-      </div>
-
-      <!-- TAB 3: MENTOR & STUDENT ALLOCATION -->
-      <div id="adminTabStudents" class="hidden space-y-6">
-        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-          <h3 class="text-base font-bold text-slate-900 pb-3 border-b border-slate-100">
-            Registered CMKids Aspirants - AKHMUP School Chathrathody
-          </h3>
-          <div class="overflow-x-auto mt-4">
-            <table class="w-full text-left text-xs text-slate-600">
-              <thead class="bg-slate-50 text-slate-700 uppercase font-bold border-b border-slate-200">
-                <tr>
-                  <th class="p-3">Adm No.</th>
-                  <th class="p-3">Student Name</th>
-                  <th class="p-3">Assigned Mentor</th>
-                  <th class="p-3">Daily Tests Taken</th>
-                  <th class="p-3">Avg Accuracy</th>
-                  <th class="p-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody id="studentRosterTableBody" class="divide-y divide-slate-100">
-                <!-- Dynamically populated -->
-              </tbody>
-            </table>
-          </div>
+          <div id="questionBankGrid" class="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
         </div>
       </div>
 
@@ -337,19 +540,19 @@
     <!-- ========================================== -->
     <!-- 2. STUDENT PORTAL VIEW                     -->
     <!-- ========================================== -->
-    <div id="studentView" class="space-y-6">
+    <div id="studentView" class="hidden space-y-6">
 
       <!-- Student Banner -->
       <div class="bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 rounded-3xl p-6 sm:p-8 text-white shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <div class="inline-flex items-center space-x-2 bg-blue-700/60 border border-blue-400/30 px-3 py-1 rounded-full text-xs font-bold mb-3">
-            <span>Student Dashboard</span>
+            <span id="bannerStudentAdm">Adm No: --</span>
             <span>•</span>
-            <span>Class 7 CMKids Batch</span>
+            <span id="bannerStudentBatch">Batch 2026-27</span>
           </div>
-          <h2 class="text-2xl sm:text-3xl font-black tracking-tight">CMKids Daily Mock Exam Portal</h2>
+          <h2 class="text-2xl sm:text-3xl font-black tracking-tight" id="bannerStudentWelcome">Welcome, Student!</h2>
           <p class="text-blue-100 text-xs sm:text-sm mt-1 max-w-xl">
-            Read today's revision notes, attend timed scholarship mock tests, and receive immediate answer rationales in Malayalam.
+            Read today's study notes, attend timed CMKids scholarship mock tests, and review detailed Malayalam explanations.
           </p>
         </div>
 
@@ -359,8 +562,8 @@
           </div>
           <div>
             <p class="text-[11px] uppercase tracking-wider text-blue-200 font-bold">Your Performance</p>
-            <p class="text-lg font-black text-white" id="studentAvgScoreDisplay">84% Accuracy</p>
-            <p class="text-[11px] text-blue-200" id="studentAssignedMentorDisplay">Mentor: Smt. Rasia Teacher</p>
+            <p class="text-lg font-black text-white" id="studentAvgScoreDisplay">0 Tests Completed</p>
+            <p class="text-[11px] text-blue-200" id="studentAssignedMentorDisplay">Mentor: Unassigned</p>
           </div>
         </div>
       </div>
@@ -368,67 +571,56 @@
       <!-- State A: Available Mock Tests List -->
       <div id="studentAvailableTestsCard" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
         <h3 class="text-base font-bold text-slate-900 pb-3 border-b border-slate-100 flex items-center justify-between">
-          <span>Today's Scheduled Mock Exams</span>
-          <span class="text-xs font-semibold text-slate-500">AKHMUP School Chathrathody Exam Cell</span>
+          <span>Scheduled Daily Mock Exams</span>
+          <span class="text-xs font-semibold text-slate-500">Select an exam to begin</span>
         </h3>
 
-        <div id="studentExamsList" class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- Dynamically populated -->
-        </div>
+        <div id="studentExamsList" class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4"></div>
       </div>
 
-      <!-- State B: Pre-Quiz Study Summary Modal / Card -->
+      <!-- State B: Pre-Quiz Study Summary Card (SINGLE START QUIZ BUTTON) -->
       <div id="studentPreQuizSummaryCard" class="hidden bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-lg space-y-6">
         <div class="flex items-center justify-between pb-4 border-b border-slate-100">
           <div>
             <span id="preQuizSubjectBadge" class="text-xs font-bold px-3 py-1 rounded-full bg-blue-100 text-blue-800">
-              Basic Science
+              Subject
             </span>
             <h3 id="preQuizTopicTitle" class="text-xl font-black text-slate-900 mt-2">
-              ജീവന്റെ തുടിപ്പുകൾ (Study Notes)
+              Topic Title
             </h3>
           </div>
-          <button 
-            onclick="returnToStudentList()" 
-            class="text-xs font-semibold text-slate-400 hover:text-slate-600"
-          >
+          <button onclick="returnToStudentList()" class="text-xs font-semibold text-slate-400 hover:text-slate-600">
             ← Back to exams
           </button>
         </div>
 
         <div class="bg-amber-50/80 border border-amber-200 rounded-2xl p-5">
-          <h4 class="text-xs font-bold text-amber-900 uppercase tracking-wider flex items-center space-x-1.5 mb-3">
-            <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            <span>പരീക്ഷയ്ക്ക് മുൻപുള്ള സംക്ഷിപ്ത പഠനക്കുറിപ്പുകൾ (Key Revision Points)</span>
+          <h4 class="text-xs font-bold text-amber-900 uppercase tracking-wider mb-3">
+            പരീക്ഷയ്ക്ക് മുൻപുള്ള സംക്ഷിപ്ത പഠനക്കുറിപ്പുകൾ (Key Revision Summary)
           </h4>
-          <ul id="preQuizSummaryList" class="space-y-2 text-sm text-slate-800 malayalam-font leading-relaxed">
-            <!-- Dynamically populated -->
-          </ul>
+          <ul id="preQuizSummaryList" class="space-y-2 text-sm text-slate-800 malayalam-font leading-relaxed"></ul>
         </div>
 
-        <div class="flex flex-col sm:flex-row items-center justify-end gap-3 pt-4 border-t border-slate-100">
+        <div class="flex items-center justify-end pt-4 border-t border-slate-100">
           <button 
             onclick="launchActiveQuiz()" 
-            class="w-full sm:w-auto px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-md transition"
+            class="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-md transition"
           >
-            Skip Summary & Start Quiz Directly →
+            Start Quiz →
           </button>
         </div>
       </div>
 
       <!-- State C: Timed Quiz Player Interface -->
       <div id="studentQuizActiveCard" class="hidden space-y-6">
-        <!-- Sticky Timer & Header -->
         <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between sticky top-24 z-30">
           <div>
-            <h4 id="quizActiveTitle" class="text-sm font-bold text-slate-900">Basic Science Mock Test</h4>
+            <h4 id="quizActiveTitle" class="text-sm font-bold text-slate-900">Mock Test</h4>
             <p class="text-xs text-slate-500">Question <span id="currentQNum">1</span> of <span id="totalQNum">10</span></p>
           </div>
           
           <div class="flex items-center space-x-3">
-            <!-- Countdown Timer -->
             <div class="flex items-center space-x-2 bg-red-50 text-red-700 px-3 py-1.5 rounded-xl border border-red-200 font-mono font-bold text-sm">
-              <svg class="w-4 h-4 text-red-500 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
               <span id="quizTimer">15:00</span>
             </div>
             <button 
@@ -441,10 +633,7 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          
-          <!-- Question Canvas (Left 8 Cols) -->
           <div class="lg:col-span-8 bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
-            
             <div class="flex items-start justify-between gap-4">
               <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-700">
                 Q.<span id="displayQuestionIndex">1</span>
@@ -458,17 +647,9 @@
               </button>
             </div>
 
-            <!-- Question Stem in Malayalam/Target Language -->
-            <div id="quizQuestionStem" class="text-base sm:text-lg font-bold text-slate-900 malayalam-font leading-relaxed">
-              <!-- Rendered Question Text -->
-            </div>
+            <div id="quizQuestionStem" class="text-base sm:text-lg font-bold text-slate-900 malayalam-font leading-relaxed"></div>
+            <div id="quizOptionsContainer" class="space-y-3 pt-2"></div>
 
-            <!-- 4 Multiple Choice Options -->
-            <div id="quizOptionsContainer" class="space-y-3 pt-2">
-              <!-- Rendered Options -->
-            </div>
-
-            <!-- Bottom Navigation -->
             <div class="flex items-center justify-between pt-6 border-t border-slate-100">
               <button 
                 onclick="navigateQuestion(-1)" 
@@ -485,74 +666,50 @@
                 Next Question →
               </button>
             </div>
-
           </div>
 
-          <!-- Question Palette (Right 4 Cols) -->
           <div class="lg:col-span-4 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
             <h4 class="text-xs font-bold uppercase tracking-wider text-slate-600">Question Palette</h4>
-            
-            <div id="quizPaletteGrid" class="grid grid-cols-5 gap-2">
-              <!-- 1, 2, 3.. Palette bubbles -->
-            </div>
-
+            <div id="quizPaletteGrid" class="grid grid-cols-5 gap-2"></div>
             <div class="pt-4 border-t border-slate-100 text-[11px] space-y-1.5 text-slate-500">
-              <div class="flex items-center space-x-2">
-                <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
-                <span>Answered</span>
-              </div>
-              <div class="flex items-center space-x-2">
-                <span class="w-3 h-3 rounded-full bg-amber-400"></span>
-                <span>Marked for Review</span>
-              </div>
-              <div class="flex items-center space-x-2">
-                <span class="w-3 h-3 rounded-full bg-slate-200"></span>
-                <span>Not Visited</span>
-              </div>
+              <div class="flex items-center space-x-2"><span class="w-3 h-3 rounded-full bg-emerald-500"></span><span>Answered</span></div>
+              <div class="flex items-center space-x-2"><span class="w-3 h-3 rounded-full bg-amber-400"></span><span>Marked for Review</span></div>
+              <div class="flex items-center space-x-2"><span class="w-3 h-3 rounded-full bg-slate-200"></span><span>Not Visited</span></div>
             </div>
           </div>
-
         </div>
       </div>
 
       <!-- State D: Exam Review & Scorecard -->
       <div id="studentQuizResultsCard" class="hidden space-y-6">
         <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm text-center space-y-4">
-          <div class="h-16 w-16 mx-auto rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-2xl font-black">
-            ✓
-          </div>
+          <div class="h-16 w-16 mx-auto rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-2xl font-black">✓</div>
           <h3 class="text-2xl font-black text-slate-900">Exam Completed!</h3>
-          <p class="text-xs text-slate-500">Your score has been permanently recorded and mapped to your mentor.</p>
+          <p class="text-xs text-slate-500">Your score and answer sheet have been saved permanently to your profile.</p>
 
           <div class="max-w-md mx-auto grid grid-cols-3 gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-200">
             <div>
               <p class="text-[10px] uppercase font-bold text-slate-400">Score</p>
-              <p class="text-xl font-black text-slate-900" id="resScore">8 / 10</p>
+              <p class="text-xl font-black text-slate-900" id="resScore">0 / 0</p>
             </div>
             <div>
               <p class="text-[10px] uppercase font-bold text-slate-400">Accuracy</p>
-              <p class="text-xl font-black text-emerald-600" id="resAccuracy">80%</p>
+              <p class="text-xl font-black text-emerald-600" id="resAccuracy">0%</p>
             </div>
             <div>
               <p class="text-[10px] uppercase font-bold text-slate-400">Status</p>
-              <p class="text-xl font-black text-blue-600" id="resStatus">Passed</p>
+              <p class="text-xl font-black text-blue-600" id="resStatus">Completed</p>
             </div>
           </div>
 
-          <button 
-            onclick="returnToStudentList()" 
-            class="px-5 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 transition"
-          >
+          <button onclick="returnToStudentList()" class="px-5 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 transition">
             Back to Dashboard
           </button>
         </div>
 
-        <!-- Detailed Rationales in Malayalam -->
         <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-4">
           <h4 class="text-base font-bold text-slate-900">Detailed Question Rationales (ഉത്തര വിശകലനം)</h4>
-          <div id="resultsDetailedQuestionsContainer" class="space-y-4">
-            <!-- Dynamic review questions -->
-          </div>
+          <div id="resultsDetailedQuestionsContainer" class="space-y-4"></div>
         </div>
       </div>
 
@@ -565,52 +722,50 @@
       
       <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 gap-4">
         <div>
-          <h2 class="text-xl font-bold text-slate-900">Mentor Performance Portal</h2>
-          <p class="text-sm text-slate-500">Track assigned student progress, daily mock test attempts, and subject accuracy.</p>
+          <h2 class="text-xl font-bold text-slate-900">Mentor Performance & Attendance Portal</h2>
+          <p class="text-sm text-slate-500">Check exam attendance, marks, and complete answer sheets for your assigned mentees.</p>
         </div>
-        <div class="text-xs font-semibold px-3 py-1.5 rounded-xl bg-blue-50 text-blue-800 border border-blue-200">
-          Mentor: <span class="font-bold">Smt. Rasia Teacher</span> (AKHMUP School)
+        <div class="flex items-center space-x-2">
+          <label class="text-xs font-bold text-slate-600">Select Exam:</label>
+          <select id="mentorExamFilter" onchange="renderMentorDashboard()" class="text-xs font-bold rounded-xl border-slate-300 bg-white border px-3 py-2">
+            <option value="all">All Exams</option>
+          </select>
         </div>
       </div>
 
-      <!-- Mentees Overview Roster -->
+      <!-- Summary Cards -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
           <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Assigned Mentees</p>
-          <p class="text-2xl font-black text-slate-900 mt-1" id="mentorTotalMenteesCount">4</p>
-          <p class="text-xs text-slate-500 mt-1">Class 7 CMKids aspirants</p>
+          <p class="text-2xl font-black text-slate-900 mt-1" id="mentorTotalMenteesCount">0</p>
         </div>
         <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-          <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Today's Attendance Rate</p>
-          <p class="text-2xl font-black text-emerald-600 mt-1">100%</p>
-          <p class="text-xs text-slate-500 mt-1">All mentees completed daily mock</p>
+          <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Attended Selected Exam</p>
+          <p class="text-2xl font-black text-emerald-600 mt-1" id="mentorAttendedCount">0 / 0</p>
         </div>
         <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-          <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Batch Average Accuracy</p>
-          <p class="text-2xl font-black text-blue-600 mt-1">82.5%</p>
-          <p class="text-xs text-slate-500 mt-1">Top performing in Basic Science</p>
+          <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Mentee Batch Average</p>
+          <p class="text-2xl font-black text-blue-600 mt-1" id="mentorAvgAccuracy">--</p>
         </div>
       </div>
 
-      <!-- Mentee Performance Table -->
+      <!-- Mentee Attendance & Marks Table -->
       <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-        <h3 class="text-base font-bold text-slate-900">Mentee Scorecards & Individual Analytics</h3>
+        <h3 class="text-base font-bold text-slate-900">Mentee Exam Status & Answer Inspection</h3>
         
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs text-slate-600">
             <thead class="bg-slate-50 text-slate-700 uppercase font-bold border-b border-slate-200">
               <tr>
+                <th class="p-3">Adm No.</th>
                 <th class="p-3">Student Name</th>
-                <th class="p-3">Admission No.</th>
-                <th class="p-3">Latest Exam</th>
-                <th class="p-3">Score</th>
-                <th class="p-3">Subject Accuracy</th>
-                <th class="p-3 text-right">Guidance</th>
+                <th class="p-3">Exam Title</th>
+                <th class="p-3">Attendance Status</th>
+                <th class="p-3">Marks & Accuracy</th>
+                <th class="p-3 text-right">Answer Sheet</th>
               </tr>
             </thead>
-            <tbody id="mentorMenteesTableBody" class="divide-y divide-slate-100">
-              <!-- Dynamically populated -->
-            </tbody>
+            <tbody id="mentorMenteesTableBody" class="divide-y divide-slate-100"></tbody>
           </table>
         </div>
       </div>
@@ -618,6 +773,70 @@
     </div>
 
   </main>
+
+  <!-- ========================================== -->
+  <!-- MODAL: MENTOR VIEW STUDENT ANSWERS         -->
+  <!-- ========================================== -->
+  <div id="answerSheetModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-3xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+        <div>
+          <h3 id="modalAnswerStudentName" class="text-base font-black text-slate-900">Student Answer Sheet</h3>
+          <p id="modalAnswerExamMeta" class="text-xs text-slate-500">Exam Title • Score</p>
+        </div>
+        <button onclick="closeAnswerModal()" class="px-3 py-1.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-xs font-bold text-slate-800">
+          Close ✕
+        </button>
+      </div>
+      <div id="modalAnswerBody" class="p-6 overflow-y-auto space-y-4"></div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: ASSIGN / CHANGE MENTOR              -->
+  <!-- ========================================== -->
+  <div id="assignMentorModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+      <h3 class="text-base font-black text-slate-900">Assign Mentor</h3>
+      <p id="assignMentorStudentLabel" class="text-xs text-slate-600">Select mentor for student:</p>
+      <select id="assignMentorSelect" class="w-full text-sm rounded-xl border-slate-300 bg-slate-50 border px-3.5 py-2.5 font-semibold"></select>
+      <div class="flex justify-end space-x-2 pt-2">
+        <button onclick="document.getElementById('assignMentorModal').classList.add('hidden')" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600">Cancel</button>
+        <button onclick="confirmMentorAssignment()" class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold">Save Assignment</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: MANUAL ADD STUDENT (WITHOUT EXCEL)  -->
+  <!-- ========================================== -->
+  <div id="manualStudentModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+      <h3 class="text-base font-black text-slate-900">Enroll Student Manually</h3>
+      <form onsubmit="event.preventDefault(); submitManualStudent();" class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Admission Number</label>
+          <input type="text" id="manAdmNo" required placeholder="e.g., 1234" class="w-full text-sm rounded-xl border-slate-300 bg-slate-50 border px-3 py-2 font-mono font-bold"/>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Student Full Name</label>
+          <input type="text" id="manFullName" required placeholder="e.g., Fathima Hiba" class="w-full text-sm rounded-xl border-slate-300 bg-slate-50 border px-3 py-2 font-semibold"/>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Class / Division</label>
+          <input type="text" id="manClassDiv" placeholder="e.g., 7 A" class="w-full text-sm rounded-xl border-slate-300 bg-slate-50 border px-3 py-2"/>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Assign Mentor (Optional)</label>
+          <select id="manMentorSelect" class="w-full text-sm rounded-xl border-slate-300 bg-slate-50 border px-3 py-2"></select>
+        </div>
+        <div class="flex justify-end space-x-2 pt-2">
+          <button type="button" onclick="document.getElementById('manualStudentModal').classList.add('hidden')" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600">Cancel</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold">Enroll to Batch</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- FOOTER -->
   <footer class="bg-white border-t border-slate-200 mt-auto py-4 text-center text-xs text-slate-400">
@@ -627,187 +846,98 @@
   <!-- JAVASCRIPT APPLICATION LOGIC -->
   <script>
     // ============================================================
-    // 1. SUPABASE CLIENT INITIALIZATION
+    // 1. SUPABASE INITIALIZATION
     // ============================================================
     const SUPABASE_URL = "https://wrenqngsligwimtzbtpd.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_-whw9evphRGWi5h0gRjSSw_jqWUpCXb";
     
     let supabaseClient = null;
-    try {
-      if (window.supabase) {
-        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-      }
-    } catch (err) {
-      console.warn("Supabase init error, running in local fallback mode:", err);
+    if (window.supabase) {
+      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 
     // ============================================================
-    // 2. DEFAULT STATE & MOCK SEED DATA
+    // 2. APPLICATION STATE
     // ============================================================
-    let currentRole = "student";
+    let selectedLoginRole = null;
+    let currentUser = null; // { id, full_name, role, login_id, admission_no, batch_year, mentor_id }
+    let activeBatchYear = "2026-27";
+    let selectedBatchFilter = "2026-27";
+
+    let allProfiles = [];       // Admins, Mentors, Batch Students
+    let schoolDirectory = [];   // Uploaded full-school Excel list
+    let questionBank = [];
+    let scheduledExams = [];
+    let allAttempts = [];
+
+    let currentAdminDraft = null;
     let activeExamInstance = null;
     let activeQuestionIdx = 0;
     let studentResponses = {};
     let markedForReview = {};
     let timerInterval = null;
     let timeRemainingSeconds = 0;
-
-    // Default Students Roster
-    let studentsRoster = [
-      { id: "s1", name: "Fathima Hiba", admNo: "7412", mentor: "Smt. Rasia Teacher", testsTaken: 14, accuracy: 88, weakSubject: "Mathematics" },
-      { id: "s2", name: "Mohammed Sinan", admNo: "7425", mentor: "Smt. Rasia Teacher", testsTaken: 12, accuracy: 79, weakSubject: "Urdu" },
-      { id: "s3", name: "Ananya K.P.", admNo: "7431", mentor: "Smt. Rasia Teacher", testsTaken: 15, accuracy: 92, weakSubject: "Arabic" },
-      { id: "s4", name: "Adil Rahman", admNo: "7440", mentor: "Smt. Rasia Teacher", testsTaken: 11, accuracy: 74, weakSubject: "Social Science" }
-    ];
-
-    // Default Stored Question Bank Topics
-    let questionBank = [
-      {
-        id: "bank-1",
-        subject: "Basic Science",
-        topic: "ജീവന്റെ തുടിപ്പുകൾ (Living World)",
-        summaryPoints: [
-          "സസ്യങ്ങൾ പ്രകാശസംശ്ലേഷണത്തിലൂടെ സ്വന്തമായി ആഹാരം നിർമ്മിക്കുന്നു.",
-          "ഇലകളിലെ ഹരിതകമാണ് സൗരോർജ്ജത്തെ ആഗിരണം ചെയ്യുന്നത്.",
-          "ശ്വസന പ്രക്രിയയിൽ സസ്യങ്ങളും ജന്തുക്കളും ഓക്സിജൻ സ്വീകരിക്കുകയും കാർബൺ ഡയോക്സൈഡ് പുറത്തുവിടുകയും ചെയ്യുന്നു."
-        ],
-        questions: [
-          {
-            stem: "സസ്യങ്ങളിൽ പ്രകാശസംശ്ലേഷണത്തിന് ആവശ്യമായ സൗരോർജ്ജം ആഗിരണം ചെയ്യുന്നത് ഏത് ഘടകമാണ്?",
-            options: ["ഹരിതകം (Chlorophyll)", "ജലം", "ഓക്സിജൻ", "വേരുകൾ"],
-            correctIndex: 0,
-            explanation: "ഇലകളിലുള്ള ഹരിതകമാണ് (ക്ലോറോഫിൽ) സൂര്യപ്രകാശത്തെ ആഗിരണം ചെയ്യുന്നത്."
-          },
-          {
-            stem: "താഴെ പറയുന്നവയിൽ സ്വയംപോഷി അല്ലാത്ത ജീവി ഏത്?",
-            options: ["ആൽമരം", "പന്നൽ സസ്യം", "കൂൺ (Mushroom)", "നെല്ല്"],
-            correctIndex: 2,
-            explanation: "കൂൺ ഒരു ഫംഗസ് ആണ്. ഇതിന് ഹരിതകം ഇല്ലാത്തതിനാൽ സ്വന്തമായി ആഹാരം ഉണ്ടാക്കാൻ കഴിയില്ല (മൃതോപജീവി)."
-          }
-        ]
-      },
-      {
-        id: "bank-2",
-        subject: "Mathematics",
-        topic: "സംഖ്യാ പാറ്റേണുകൾ (Number Patterns)",
-        summaryPoints: [
-          "തുടർച്ചയായ ഇരട്ട സംഖ്യകളുടെ വ്യത്യാസം എപ്പോഴും 2 ആയിരിക്കും.",
-          "സമചതുര സംഖ്യകൾ: 1, 4, 9, 16, 25..."
-        ],
-        questions: [
-          {
-            stem: "2, 5, 10, 17, .... അടുത്ത സംഖ്യ ഏത്?",
-            options: ["24", "26", "28", "25"],
-            correctIndex: 1,
-            explanation: "പാറ്റേൺ: 1²+1=2, 2²+1=5, 3²+1=10, 4²+1=17. അതിനാൽ അടുത്ത സംഖ്യ 5²+1 = 26 ആണ്."
-          }
-        ]
-      }
-    ];
-
-    // Scheduled Daily Exams
-    let scheduledExams = [
-      {
-        id: "exam-001",
-        title: "Daily Mock: ജീവന്റെ തുടിപ്പുകൾ",
-        subject: "Basic Science",
-        durationMinutes: 15,
-        summaryPoints: [
-          "സസ്യങ്ങൾ പ്രകാശസംശ്ലേഷണത്തിലൂടെ സ്വന്തമായി ആഹാരം നിർമ്മിക്കുന്നു.",
-          "ഇലകളിലെ ഹരിതകമാണ് സൗരോർജ്ജത്തെ ആഗിരണം ചെയ്യുന്നത്.",
-          "ശ്വസന പ്രക്രിയയിൽ സസ്യങ്ങളും ജന്തുക്കളും ഓക്സിജൻ സ്വീകരിക്കുകയും കാർബൺ ഡയോക്സൈഡ് പുറത്തുവിടുകയും ചെയ്യുന്നു."
-        ],
-        questions: [
-          {
-            stem: "സസ്യങ്ങളിൽ പ്രകാശസംശ്ലേഷണത്തിന് ആവശ്യമായ സൗരോർജ്ജം ആഗിരണം ചെയ്യുന്നത് ഏത് ഘടകമാണ്?",
-            options: ["ഹരിതകം (Chlorophyll)", "ജലം", "ഓക്സിജൻ", "വേരുകൾ"],
-            correctIndex: 0,
-            explanation: "ഇലകളിലുള്ള ഹരിതകമാണ് (ക്ലോറോഫിൽ) സൂര്യപ്രകാശത്തെ ആഗിരണം ചെയ്യുന്നത്."
-          },
-          {
-            stem: "താഴെ പറയുന്നവയിൽ സ്വയംപോഷി അല്ലാത്ത ജീവി ഏത്?",
-            options: ["ആൽമരം", "പന്നൽ സസ്യം", "കൂൺ (Mushroom)", "നെല്ല്"],
-            correctIndex: 2,
-            explanation: "കൂൺ ഒരു ഫംഗസ് ആണ്. ഇതിന് ഹരിതകം ഇല്ലാത്തതിനാൽ സ്വന്തമായി ആഹാരം ഉണ്ടാക്കാൻ കഴിയില്ല (മൃതോപജീവി)."
-          },
-          {
-            stem: "പ്രകാശസംശ്ലേഷണ ഫലമായി സസ്യങ്ങൾ പുറത്തുവിടുന്ന വാതകം ഏതാണ്?",
-            options: ["നൈട്രജൻ", "ഓക്സിജൻ", "കാർബൺ ഡൈ ഓക്സൈഡ്", "ഹൈഡ്രജൻ"],
-            correctIndex: 1,
-            explanation: "പ്രകാശസംശ്ലേഷണത്തിൽ കാർബൺ ഡയോക്സൈഡ് സ്വീകരിച്ച് ഓക്സിജൻ പുറത്തുവിടുന്നു."
-          }
-        ]
-      }
-    ];
-
-    // Temporary Draft In Admin
-    let currentAdminDraft = null;
+    let pendingStudentForMentorAssign = null;
 
     // ============================================================
-    // 3. LIFECYCLE & ROLE SWITCHING
+    // 3. INITIAL LOAD & SESSION RESTORATION
     // ============================================================
     window.addEventListener("DOMContentLoaded", async () => {
-      await loadCloudData();
-      renderStudentExamsList();
-      renderQuestionBank();
-      renderStudentRosters();
+      await syncAllFromCloud();
+      
+      const savedSession = localStorage.getItem("cmkids_active_user");
+      if (savedSession) {
+        try {
+          const parsed = JSON.parse(savedSession);
+          // Re-verify against cloud profiles
+          const validUser = allProfiles.find(p => p.login_id === parsed.login_id && p.role === parsed.role);
+          if (validUser) {
+            completeLogin(validUser);
+            return;
+          }
+        } catch (e) {}
+      }
+      showAuthView();
     });
 
-    function switchRole(role) {
-      currentRole = role;
-      document.getElementById("adminView").classList.add("hidden");
-      document.getElementById("studentView").classList.add("hidden");
-      document.getElementById("mentorView").classList.add("hidden");
-
-      if (role === "admin") {
-        document.getElementById("adminView").classList.remove("hidden");
-        switchAdminTab('generate');
-      } else if (role === "student") {
-        document.getElementById("studentView").classList.remove("hidden");
-        returnToStudentList();
-      } else if (role === "mentor") {
-        document.getElementById("mentorView").classList.remove("hidden");
-        renderMentorRoster();
-      }
-    }
-
-    function switchAdminTab(tab) {
-      document.getElementById("adminTabGenerate").classList.add("hidden");
-      document.getElementById("adminTabBank").classList.add("hidden");
-      document.getElementById("adminTabStudents").classList.add("hidden");
-
-      document.getElementById("tabBtnGenerate").className = "px-3.5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider bg-slate-100 text-slate-700 hover:bg-slate-200 transition";
-      document.getElementById("tabBtnBank").className = "px-3.5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider bg-slate-100 text-slate-700 hover:bg-slate-200 transition";
-      document.getElementById("tabBtnStudents").className = "px-3.5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider bg-slate-100 text-slate-700 hover:bg-slate-200 transition";
-
-      if (tab === "generate") {
-        document.getElementById("adminTabGenerate").classList.remove("hidden");
-        document.getElementById("tabBtnGenerate").className = "px-3.5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider bg-blue-600 text-white shadow-sm transition";
-      } else if (tab === "bank") {
-        document.getElementById("adminTabBank").classList.remove("hidden");
-        document.getElementById("tabBtnBank").className = "px-3.5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider bg-blue-600 text-white shadow-sm transition";
-        renderQuestionBank();
-      } else if (tab === "students") {
-        document.getElementById("adminTabStudents").classList.remove("hidden");
-        document.getElementById("tabBtnStudents").className = "px-3.5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider bg-blue-600 text-white shadow-sm transition";
-        renderStudentRosters();
-      }
-    }
-
-    // ============================================================
-    // 4. SUPABASE CLOUD SYNC HELPERS
-    // ============================================================
-    async function loadCloudData() {
+    async function syncAllFromCloud() {
       if (!supabaseClient) return;
 
       try {
-        // Load Scheduled Exams
-        const { data: exams, error: errExams } = await supabaseClient
-          .from("scheduled_exams")
-          .select("*")
-          .order("created_at", { ascending: false });
+        // 1. Active Batch Setting
+        const { data: settings } = await supabaseClient.from("app_settings").select("*").eq("key", "active_batch").single();
+        if (settings && settings.value) {
+          activeBatchYear = settings.value;
+          selectedBatchFilter = settings.value;
+        }
 
-        if (!errExams && exams && exams.length > 0) {
+        // 2. Profiles (Admins, Mentors, Students)
+        const { data: profiles } = await supabaseClient.from("profiles").select("*").order("created_at", { ascending: false });
+        if (profiles) {
+          allProfiles = profiles;
+        }
+
+        // Ensure default master admin CM19877 exists locally if DB hasn't been seeded yet
+        if (!allProfiles.some(p => p.login_id === "CM19877")) {
+          allProfiles.push({
+            id: "admin-master",
+            full_name: "Exam Cell Admin",
+            role: "admin",
+            login_id: "CM19877",
+            admission_no: "ADMIN_MASTER",
+            batch_year: "ALL"
+          });
+        }
+
+        // 3. School Directory
+        const { data: dir } = await supabaseClient.from("school_directory").select("*").order("admission_no", { ascending: true });
+        if (dir) {
+          schoolDirectory = dir;
+        }
+
+        // 4. Scheduled Exams
+        const { data: exams } = await supabaseClient.from("scheduled_exams").select("*").order("created_at", { ascending: false });
+        if (exams) {
           scheduledExams = exams.map(e => ({
             id: e.id,
             title: e.title,
@@ -818,13 +948,9 @@
           }));
         }
 
-        // Load Question Bank
-        const { data: bank, error: errBank } = await supabaseClient
-          .from("question_bank")
-          .select("*")
-          .order("created_at", { ascending: false });
-
-        if (!errBank && bank && bank.length > 0) {
+        // 5. Question Bank
+        const { data: bank } = await supabaseClient.from("question_bank").select("*").order("created_at", { ascending: false });
+        if (bank) {
           questionBank = bank.map(b => ({
             id: b.id,
             subject: b.subject,
@@ -832,158 +958,655 @@
             summaryPoints: b.summary_points || [],
             questions: b.questions || []
           }));
-          document.getElementById("repoCount").innerText = questionBank.length;
         }
 
-      } catch (e) {
-        console.warn("Could not fetch remote tables, using memory cache:", e);
+        // 6. Exam Attempts
+        const { data: attempts } = await supabaseClient.from("exam_attempts").select("*").order("completed_at", { ascending: false });
+        if (attempts) {
+          allAttempts = attempts;
+        }
+
+      } catch (err) {
+        console.warn("Cloud sync notice:", err);
       }
     }
 
     // ============================================================
-    // 5. QUESTION GENERATION LOGIC (MALAYALAM ROUTED)
+    // 4. STRICT ROLE-LOCKED LOGIN FLOW
     // ============================================================
-    function triggerAIGeneration() {
-      const subject = document.getElementById("genSubject").value;
-      const topic = document.getElementById("genTopic").value.trim();
-      const count = parseInt(document.getElementById("genCount").value);
-      const duration = parseInt(document.getElementById("genDuration").value);
-      const sourceText = document.getElementById("genSourceText").value.trim();
+    function showAuthView() {
+      document.getElementById("authView").classList.remove("hidden");
+      document.getElementById("adminView").classList.add("hidden");
+      document.getElementById("studentView").classList.add("hidden");
+      document.getElementById("mentorView").classList.add("hidden");
+      document.getElementById("userSessionBar").classList.add("hidden");
+    }
 
-      const btn = document.getElementById("btnGenerateQuestions");
-      btn.innerHTML = `<span class="inline-block animate-spin mr-2">⚙</span> Formulating Malayalam Questions...`;
+    function selectLoginRole(role) {
+      selectedLoginRole = role;
+      document.getElementById("loginErrorBox").classList.add("hidden");
+      document.getElementById("loginUserIdInput").value = "";
+
+      // Reset card highlights
+      ["Admin", "Student", "Mentor"].forEach(r => {
+        const el = document.getElementById("roleCard" + r);
+        el.className = "p-4 rounded-2xl border-2 border-slate-200 hover:border-blue-500 bg-slate-50/60 flex flex-col items-center justify-center space-y-2 transition group";
+      });
+
+      const activeCard = document.getElementById("roleCard" + role.charAt(0).toUpperCase() + role.slice(1));
+      activeCard.className = "p-4 rounded-2xl border-2 border-blue-600 bg-blue-50 flex flex-col items-center justify-center space-y-2 shadow-sm transition";
+
+      const labelMap = {
+        admin: "Enter Admin User ID",
+        student: "Enter Student User ID",
+        mentor: "Enter Mentor User ID"
+      };
+      document.getElementById("selectedRolePromptLabel").innerText = labelMap[role];
+      document.getElementById("roleLoginForm").classList.remove("hidden");
+      document.getElementById("loginUserIdInput").focus();
+    }
+
+    async function executeRoleLogin() {
+      if (!selectedLoginRole) return;
+      const enteredId = document.getElementById("loginUserIdInput").value.trim();
+      const errorBox = document.getElementById("loginErrorBox");
+      errorBox.classList.add("hidden");
+
+      const btn = document.getElementById("btnLoginSubmit");
+      btn.innerText = "Verifying...";
       btn.disabled = true;
 
-      setTimeout(() => {
-        const generated = produceSubjectMockData(subject, topic, count);
-        currentAdminDraft = {
-          subject: subject,
-          topic: topic,
-          durationMinutes: duration,
-          summaryPoints: generated.summary,
-          questions: generated.questions
-        };
+      // Refresh profiles from Supabase so newly added users can log in immediately
+      await syncAllFromCloud();
 
-        renderAdminEditor(currentAdminDraft);
+      // Strict matching: Both login_id AND role must match (no cross-login)
+      const matchedUser = allProfiles.find(
+        p => p.login_id && p.login_id.toLowerCase() === enteredId.toLowerCase() && p.role === selectedLoginRole
+      );
 
-        btn.innerHTML = `<span>Generate Questions & Summary</span>`;
-        btn.disabled = false;
-      }, 700);
-    }
+      btn.innerText = "Sign In →";
+      btn.disabled = false;
 
-    function produceSubjectMockData(subject, topic, count) {
-      let fontClass = "malayalam-font";
-      let summary = [];
-      let sampleQuestions = [];
-
-      if (subject === "Arabic") {
-        fontClass = "arabic-font";
-        summary = [
-          "القواعد الأساسية: الفعل الماضي والمضارع والأمر.",
-          "الضمائر المنفصلة والمتصلة في اللغة العربية.",
-          "المفردات الشائعة في كتاب الصف السابع."
-        ];
-        sampleQuestions = [
-          {
-            stem: "ما هو الفعل الماضي في الجملة: 'كَتَبَ التِّلْمِيذُ الدَّرْسَ'؟",
-            options: ["كَتَبَ", "التِّلْمِيذُ", "الدَّرْسَ", "يَكْتُبُ"],
-            correctIndex: 0,
-            explanation: "'كَتَبَ' فعل ماضٍ مبني على الفتح."
-          },
-          {
-            stem: "ما هو جمع كلمة 'كِتَاب'؟",
-            options: ["كُتُب", "كَاتِب", "مَكْتَبَة", "كِتَابَان"],
-            correctIndex: 0,
-            explanation: "جمع التكسير لكلمة كتاب هو كُتُب."
-          }
-        ];
-      } else if (subject === "Urdu") {
-        fontClass = "urdu-font";
-        summary = [
-          "اردو قواعد: اسم، فعل اور صفت کی پہچان۔",
-          "واحد اور جمع کے بنیادی اصول۔"
-        ];
-        sampleQuestions = [
-          {
-            stem: "لفظ 'کتاب' کی جمع کیا ہے؟",
-            options: ["کتابیں", "مکتب", "کاتب", "کتان"],
-            correctIndex: 0,
-            explanation: "کتاب کی جمع کتابیں ہے۔"
-          }
-        ];
-      } else if (subject === "Hindi") {
-        fontClass = "devanagari-font";
-        summary = [
-          "संज्ञा, सर्वनाम और विशेषण की पहचान।",
-          "विलोम शब्द और पर्यायवाची शब्द।"
-        ];
-        sampleQuestions = [
-          {
-            stem: "'सूर्य' का पर्यायवाची शब्द क्या है?",
-            options: ["दिनकर", "चंद्र", "वारिद", "पवन"],
-            correctIndex: 0,
-            explanation: "सूर्य का समानार्थी शब्द दिनकर / रवि है।"
-          }
-        ];
-      } else if (subject === "English") {
-        fontClass = "";
-        summary = [
-          "Identifying correct parts of speech and tense forms.",
-          "Prefixes, suffixes, and Upper Primary vocabulary building."
-        ];
-        sampleQuestions = [
-          {
-            stem: "Choose the correct comparative adjective: 'Mount Everest is _______ than Mount Blanc.'",
-            options: ["higher", "highest", "more high", "high"],
-            correctIndex: 0,
-            explanation: "When comparing two objects, the comparative form (-er) is used."
-          }
-        ];
-      } else {
-        // Malayalam 1st, 2nd, Basic Science, Social Science, Maths, Combined
-        fontClass = "malayalam-font";
-        summary = [
-          `${topic} എന്ന പാഠഭാഗത്തിലെ പ്രധാന ആശയങ്ങൾ.`,
-          "കഴിഞ്ഞ വർഷങ്ങളിലെ CMKids സ്കോളർഷിപ്പ് പരീക്ഷകളിലെ പ്രധാന ചോദ്യമാതൃകകൾ.",
-          "സങ്കൽപ്പങ്ങളും അടിസ്ഥാന വസ്തുതകളും ഓർമ്മയിൽ വെക്കുക."
-        ];
-        sampleQuestions = [
-          {
-            stem: `${topic} എന്ന വിഷയവുമായി ബന്ധപ്പെട്ട് ശരിയായ പ്രസ്താവന ഏതാണ്?`,
-            options: ["ഓപ്ഷൻ A - അടിസ്ഥാന ആശയം ശരിയാണ്", "ഓപ്ഷൻ B - തെറ്റായ പ്രസ്താവന", "ഓപ്ഷൻ C - പൂർണ്ണമല്ല", "ഓപ്ഷൻ D - ഇവയൊന്നുമല്ല"],
-            correctIndex: 0,
-            explanation: "പാഠപുസ്തകത്തിലെ നിർവചനപ്രകാരം ഓപ്ഷൻ A ആണ് ശരിയായ ഉത്തരം."
-          },
-          {
-            stem: `താഴെ നൽകിയിരിക്കുന്നവയിൽ ${subject} പാഠഭാഗത്തിന് യോജിച്ചത് ഏത്?`,
-            options: ["പ്രസ്താവന 1 മാത്രം", "പ്രസ്താവന 2 മാത്രം", "1 ഉം 2 ഉം ശരിയാണ്", "രണ്ടും തെറ്റാണ്"],
-            correctIndex: 2,
-            explanation: "പാഠഭാഗത്തെ രണ്ട് വസ്തുതകളും പരസ്പര പൂരകങ്ങളാണ്."
-          }
-        ];
+      if (!matchedUser) {
+        errorBox.innerText = "User not found";
+        errorBox.classList.remove("hidden");
+        return;
       }
 
-      // Fill questions up to requested count
-      let finalQuestions = [];
+      localStorage.setItem("cmkids_active_user", JSON.stringify(matchedUser));
+      completeLogin(matchedUser);
+    }
+
+    function completeLogin(user) {
+      currentUser = user;
+      document.getElementById("authView").classList.add("hidden");
+      document.getElementById("userSessionBar").classList.remove("hidden");
+      document.getElementById("headerUserName").innerText = user.full_name;
+      document.getElementById("headerUserRole").innerText = user.role.toUpperCase();
+
+      if (user.role === "admin") {
+        document.getElementById("adminView").classList.remove("hidden");
+        refreshBatchDropdowns();
+        renderMentorsChips();
+        renderBatchStudentsTable();
+        renderQuestionBank();
+        document.getElementById("directoryCountBadge").innerText = schoolDirectory.length;
+        document.getElementById("repoCount").innerText = questionBank.length;
+      } else if (user.role === "student") {
+        document.getElementById("studentView").classList.remove("hidden");
+        setupStudentDashboard();
+      } else if (user.role === "mentor") {
+        document.getElementById("mentorView").classList.remove("hidden");
+        setupMentorDashboard();
+      }
+    }
+
+    function logoutUser() {
+      clearInterval(timerInterval);
+      currentUser = null;
+      selectedLoginRole = null;
+      localStorage.removeItem("cmkids_active_user");
+      document.getElementById("roleLoginForm").classList.add("hidden");
+      ["Admin", "Student", "Mentor"].forEach(r => {
+        document.getElementById("roleCard" + r).className = "p-4 rounded-2xl border-2 border-slate-200 hover:border-blue-500 bg-slate-50/60 flex flex-col items-center justify-center space-y-2 transition group";
+      });
+      showAuthView();
+    }
+
+    // ============================================================
+    // 5. ADMIN: BATCH YEAR, EXCEL DIRECTORY & MENTOR MANAGEMENT
+    // ============================================================
+    function switchAdminTab(tab) {
+      ["adminTabEnrollment", "adminTabGenerate", "adminTabBank"].forEach(id => document.getElementById(id).classList.add("hidden"));
+      ["tabBtnEnrollment", "tabBtnGenerate", "tabBtnBank"].forEach(id => {
+        document.getElementById(id).className = "px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-slate-100 hover:bg-slate-200 text-slate-700 transition";
+      });
+
+      if (tab === "enrollment") {
+        document.getElementById("adminTabEnrollment").classList.remove("hidden");
+        document.getElementById("tabBtnEnrollment").className = "px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-blue-600 text-white shadow-sm transition";
+      } else if (tab === "generate") {
+        document.getElementById("adminTabGenerate").classList.remove("hidden");
+        document.getElementById("tabBtnGenerate").className = "px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-blue-600 text-white shadow-sm transition";
+      } else if (tab === "bank") {
+        document.getElementById("adminTabBank").classList.remove("hidden");
+        document.getElementById("tabBtnBank").className = "px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-blue-600 text-white shadow-sm transition";
+        renderQuestionBank();
+      }
+    }
+
+    function refreshBatchDropdowns() {
+      const batches = new Set([activeBatchYear, "2026-27"]);
+      allProfiles.forEach(p => {
+        if (p.role === "student" && p.batch_year) batches.add(p.batch_year);
+      });
+
+      const selector = document.getElementById("batchSelector");
+      selector.innerHTML = "";
+      Array.from(batches).sort().reverse().forEach(b => {
+        const opt = document.createElement("option");
+        opt.value = b;
+        opt.innerText = b === activeBatchYear ? `${b} (Active)` : `${b} (Archived)`;
+        if (b === selectedBatchFilter) opt.selected = true;
+        selector.appendChild(opt);
+      });
+
+      document.getElementById("activeBatchBadge").innerText = activeBatchYear;
+      document.getElementById("searchTargetBatchLabel").innerText = selectedBatchFilter;
+    }
+
+    function changeSelectedBatch(batchVal) {
+      selectedBatchFilter = batchVal;
+      document.getElementById("searchTargetBatchLabel").innerText = batchVal;
+      renderBatchStudentsTable();
+    }
+
+    async function createNewBatchYear() {
+      const newBatch = prompt("Enter new batch year name (e.g., 2027-28):");
+      if (!newBatch || !newBatch.trim()) return;
+      const cleanBatch = newBatch.trim();
+
+      activeBatchYear = cleanBatch;
+      selectedBatchFilter = cleanBatch;
+
+      if (supabaseClient) {
+        await supabaseClient.from("app_settings").upsert([{ key: "active_batch", value: cleanBatch }]);
+      }
+
+      refreshBatchDropdowns();
+      renderBatchStudentsTable();
+      alert(`New batch "${cleanBatch}" created and set as active. All previous batch student records remain safely preserved.`);
+    }
+
+    // Excel Upload into school_directory
+    function handleSchoolExcelUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
+
+        if (!rows || rows.length === 0) {
+          alert("The uploaded file appears empty.");
+          return;
+        }
+
+        // Normalize columns flexibly (Admission No, Name, Class)
+        const formattedRows = [];
+        rows.forEach(r => {
+          const keys = Object.keys(r);
+          const admKey = keys.find(k => /adm|admn|no|id/i.test(k)) || keys[0];
+          const nameKey = keys.find(k => /name|student/i.test(k)) || keys[1];
+          const classKey = keys.find(k => /class|div|std/i.test(k)) || keys[2];
+
+          const admVal = String(r[admKey] || "").trim();
+          const nameVal = String(r[nameKey] || "").trim();
+          const classVal = classKey ? String(r[classKey] || "").trim() : "";
+
+          if (admVal && nameVal) {
+            formattedRows.push({
+              admission_no: admVal,
+              full_name: nameVal,
+              class_div: classVal
+            });
+          }
+        });
+
+        if (formattedRows.length === 0) {
+          alert("Could not detect Admission Number and Name columns. Ensure your Excel has headers like 'Admission No' and 'Name'.");
+          return;
+        }
+
+        if (supabaseClient) {
+          const { error } = await supabaseClient.from("school_directory").upsert(formattedRows, { onConflict: "admission_no" });
+          if (error) {
+            alert("Error uploading to Supabase: " + error.message);
+            return;
+          }
+        }
+
+        await syncAllFromCloud();
+        document.getElementById("directoryCountBadge").innerText = schoolDirectory.length;
+        alert(`Successfully imported ${formattedRows.length} students into the School Master Directory!`);
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    async function clearSchoolDirectory() {
+      if (!confirm("Clear the temporary full-school Excel directory? (Enrolled CMKids batch students and their test records will NOT be deleted.)")) return;
+      
+      if (supabaseClient) {
+        await supabaseClient.from("school_directory").delete().neq("admission_no", "___NONE___");
+      }
+      schoolDirectory = [];
+      document.getElementById("directoryCountBadge").innerText = "0";
+      document.getElementById("directorySearchResults").innerHTML = "";
+      alert("Temporary School Directory cleared.");
+    }
+
+    // Add Mentor (Auto ID: lowercase(name without spaces) + 19877)
+    async function addNewMentor() {
+      const rawName = document.getElementById("newMentorNameInput").value.trim();
+      if (!rawName) return;
+
+      const cleanPrefix = rawName.toLowerCase().replace(/[^a-z0-9]/g, "");
+      const generatedUserId = `${cleanPrefix}19877`;
+
+      if (allProfiles.some(p => p.login_id === generatedUserId)) {
+        alert(`Mentor with User ID "${generatedUserId}" already exists.`);
+        return;
+      }
+
+      const newMentor = {
+        full_name: rawName,
+        role: "mentor",
+        login_id: generatedUserId,
+        admission_no: `M_${generatedUserId}`,
+        batch_year: "ALL"
+      };
+
+      if (supabaseClient) {
+        const { data, error } = await supabaseClient.from("profiles").insert([newMentor]).select().single();
+        if (error) {
+          alert("Error adding mentor: " + error.message);
+          return;
+        }
+        allProfiles.unshift(data);
+      } else {
+        newMentor.id = "m-" + Date.now();
+        allProfiles.unshift(newMentor);
+      }
+
+      document.getElementById("newMentorNameInput").value = "";
+      renderMentorsChips();
+      alert(`Mentor "${rawName}" added!\nLogin User ID: ${generatedUserId}`);
+    }
+
+    function renderMentorsChips() {
+      const container = document.getElementById("mentorsChipList");
+      container.innerHTML = "";
+      const mentors = allProfiles.filter(p => p.role === "mentor");
+
+      mentors.forEach(m => {
+        const chip = document.createElement("span");
+        chip.className = "inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-200 text-xs font-semibold text-indigo-900";
+        chip.innerHTML = `<span>${m.full_name}</span><span class="font-mono text-[10px] bg-white px-1.5 py-0.5 rounded border border-indigo-200 text-indigo-700">${m.login_id}</span>`;
+        container.appendChild(chip);
+      });
+    }
+
+    // Search School Directory & Enroll Student into Current Batch
+    function searchSchoolDirectory(query) {
+      const resultsDiv = document.getElementById("directorySearchResults");
+      const q = query.trim().toLowerCase();
+      if (!q) {
+        resultsDiv.innerHTML = "";
+        return;
+      }
+
+      const matches = schoolDirectory.filter(
+        s => s.admission_no.toLowerCase().includes(q) || s.full_name.toLowerCase().includes(q)
+      ).slice(0, 15);
+
+      if (matches.length === 0) {
+        resultsDiv.innerHTML = `<p class="text-xs text-slate-400 py-2">No matching student found in uploaded School Directory.</p>`;
+        return;
+      }
+
+      const mentors = allProfiles.filter(p => p.role === "mentor");
+      const mentorOptionsHtml = `<option value="">-- Assign Mentor Later --</option>` + 
+        mentors.map(m => `<option value="${m.id}">${m.full_name} (${m.login_id})</option>`).join("");
+
+      resultsDiv.innerHTML = "";
+      matches.forEach(stu => {
+        const generatedId = `${stu.admission_no.toLowerCase().replace(/\s+/g, "")}s19877`;
+        const alreadyInBatch = allProfiles.some(
+          p => p.role === "student" && p.admission_no === stu.admission_no && p.batch_year === selectedBatchFilter
+        );
+
+        const row = document.createElement("div");
+        row.className = "p-3.5 rounded-xl border border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-3";
+        row.innerHTML = `
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="font-mono text-xs font-bold px-2 py-0.5 rounded bg-slate-200 text-slate-800">${stu.admission_no}</span>
+              <span class="text-sm font-bold text-slate-900">${stu.full_name}</span>
+              ${stu.class_div ? `<span class="text-xs text-slate-500">(${stu.class_div})</span>` : ""}
+            </div>
+            <p class="text-[11px] text-slate-500 mt-0.5">Student Login ID: <span class="font-mono font-bold text-blue-700">${generatedId}</span></p>
+          </div>
+          <div class="flex items-center space-x-2">
+            ${alreadyInBatch 
+              ? `<span class="px-3 py-1.5 rounded-lg bg-emerald-100 text-emerald-800 text-xs font-bold">✓ Enrolled in ${selectedBatchFilter}</span>`
+              : `
+                <select id="dir_mentor_${stu.admission_no}" class="text-xs rounded-lg border-slate-300 bg-white border px-2.5 py-2">
+                  ${mentorOptionsHtml}
+                </select>
+                <button onclick="enrollStudentFromDirectory('${stu.admission_no}', '${escapeHtml(stu.full_name)}', '${escapeHtml(stu.class_div || "")}')" class="px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold whitespace-nowrap">
+                  + Add to Batch
+                </button>
+              `
+            }
+          </div>
+        `;
+        resultsDiv.appendChild(row);
+      });
+    }
+
+    async function enrollStudentFromDirectory(admNo, fullName, classDiv) {
+      const mentorSelect = document.getElementById(`dir_mentor_${admNo}`);
+      const selectedMentorId = mentorSelect ? mentorSelect.value : null;
+      await createBatchStudentRecord(admNo, fullName, classDiv, selectedMentorId || null);
+      searchSchoolDirectory(document.getElementById("directorySearchInput").value);
+    }
+
+    function openManualStudentModal() {
+      const mentors = allProfiles.filter(p => p.role === "mentor");
+      const sel = document.getElementById("manMentorSelect");
+      sel.innerHTML = `<option value="">-- Assign Mentor Later --</option>` + 
+        mentors.map(m => `<option value="${m.id}">${m.full_name} (${m.login_id})</option>`).join("");
+      document.getElementById("manualStudentModal").classList.remove("hidden");
+    }
+
+    async function submitManualStudent() {
+      const admNo = document.getElementById("manAdmNo").value.trim();
+      const fullName = document.getElementById("manFullName").value.trim();
+      const classDiv = document.getElementById("manClassDiv").value.trim();
+      const mentorId = document.getElementById("manMentorSelect").value || null;
+
+      await createBatchStudentRecord(admNo, fullName, classDiv, mentorId);
+      document.getElementById("manualStudentModal").classList.add("hidden");
+      document.getElementById("manAdmNo").value = "";
+      document.getElementById("manFullName").value = "";
+      document.getElementById("manClassDiv").value = "";
+    }
+
+    async function createBatchStudentRecord(admNo, fullName, classDiv, mentorId) {
+      const generatedUserId = `${admNo.toLowerCase().replace(/\s+/g, "")}s19877`;
+
+      if (allProfiles.some(p => p.login_id === generatedUserId)) {
+        alert(`Student User ID "${generatedUserId}" is already registered.`);
+        return;
+      }
+
+      const newStudent = {
+        full_name: fullName,
+        role: "student",
+        admission_no: admNo,
+        login_id: generatedUserId,
+        class_div: classDiv,
+        batch_year: selectedBatchFilter,
+        mentor_id: mentorId
+      };
+
+      if (supabaseClient) {
+        const { data, error } = await supabaseClient.from("profiles").insert([newStudent]).select().single();
+        if (error) {
+          alert("Error enrolling student: " + error.message);
+          return;
+        }
+        allProfiles.unshift(data);
+      } else {
+        newStudent.id = "stu-" + Date.now();
+        allProfiles.unshift(newStudent);
+      }
+
+      renderBatchStudentsTable();
+      alert(`Enrolled ${fullName} into Batch ${selectedBatchFilter}!\nStudent Login ID: ${generatedUserId}`);
+    }
+
+    function renderBatchStudentsTable() {
+      const tbody = document.getElementById("batchStudentsTableBody");
+      tbody.innerHTML = "";
+
+      const batchStudents = allProfiles.filter(
+        p => p.role === "student" && (p.batch_year || "2026-27") === selectedBatchFilter
+      );
+      document.getElementById("batchStudentsCount").innerText = batchStudents.length;
+
+      if (batchStudents.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400">No students enrolled in Batch ${selectedBatchFilter} yet. Use the search bar above to add students.</td></tr>`;
+        return;
+      }
+
+      batchStudents.forEach(stu => {
+        const mentor = allProfiles.find(m => m.id === stu.mentor_id);
+        const tr = document.createElement("tr");
+        tr.className = "hover:bg-slate-50";
+        tr.innerHTML = `
+          <td class="p-3 font-mono font-bold">${stu.admission_no}</td>
+          <td class="p-3 font-bold text-slate-900">${stu.full_name}</td>
+          <td class="p-3">${stu.class_div || "-"}</td>
+          <td class="p-3 font-mono font-bold text-blue-700">${stu.login_id}</td>
+          <td class="p-3">
+            ${mentor 
+              ? `<span class="px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-800 font-bold text-[11px]">${mentor.full_name}</span>` 
+              : `<span class="px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 font-semibold text-[11px]">Unassigned</span>`
+            }
+          </td>
+          <td class="p-3 text-right">
+            <button onclick="openAssignMentorModal('${stu.id}')" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-blue-50 text-blue-700 font-bold text-xs border border-slate-200 transition">
+              ${mentor ? "Change Mentor" : "Assign Mentor"}
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function openAssignMentorModal(studentId) {
+      pendingStudentForMentorAssign = allProfiles.find(p => p.id === studentId);
+      if (!pendingStudentForMentorAssign) return;
+
+      document.getElementById("assignMentorStudentLabel").innerText = 
+        `Assign mentor for ${pendingStudentForMentorAssign.full_name} (Adm: ${pendingStudentForMentorAssign.admission_no}):`;
+
+      const mentors = allProfiles.filter(p => p.role === "mentor");
+      const sel = document.getElementById("assignMentorSelect");
+      sel.innerHTML = `<option value="">-- Unassigned --</option>` + 
+        mentors.map(m => `<option value="${m.id}" ${pendingStudentForMentorAssign.mentor_id === m.id ? "selected" : ""}>${m.full_name} (${m.login_id})</option>`).join("");
+
+      document.getElementById("assignMentorModal").classList.remove("hidden");
+    }
+
+    async function confirmMentorAssignment() {
+      if (!pendingStudentForMentorAssign) return;
+      const newMentorId = document.getElementById("assignMentorSelect").value || null;
+
+      pendingStudentForMentorAssign.mentor_id = newMentorId;
+
+      if (supabaseClient) {
+        await supabaseClient
+          .from("profiles")
+          .update({ mentor_id: newMentorId })
+          .eq("id", pendingStudentForMentorAssign.id);
+      }
+
+      document.getElementById("assignMentorModal").classList.add("hidden");
+      renderBatchStudentsTable();
+    }
+
+    // ============================================================
+    // 6. QUESTION BUILDER & DAILY EXAM SCHEDULER
+    // ============================================================
+    function setInputMode(mode) {
+      if (mode === "bulk") {
+        document.getElementById("bulkPasteSection").classList.remove("hidden");
+        document.getElementById("autoGenerateSection").classList.add("hidden");
+        document.getElementById("modeBtnBulk").className = "py-1.5 rounded-lg text-xs font-bold bg-white text-blue-700 shadow-sm transition";
+        document.getElementById("modeBtnGen").className = "py-1.5 rounded-lg text-xs font-bold text-slate-600 transition";
+      } else {
+        document.getElementById("bulkPasteSection").classList.add("hidden");
+        document.getElementById("autoGenerateSection").classList.remove("hidden");
+        document.getElementById("modeBtnGen").className = "py-1.5 rounded-lg text-xs font-bold bg-white text-blue-700 shadow-sm transition";
+        document.getElementById("modeBtnBulk").className = "py-1.5 rounded-lg text-xs font-bold text-slate-600 transition";
+      }
+    }
+
+    function fillSampleBulkText() {
+      document.getElementById("bulkQuestionsInput").value = 
+`1. സസ്യങ്ങളിൽ പ്രകാശസംശ്ലേഷണത്തിന് ആവശ്യമായ സൗരോർജ്ജം ആഗിരണം ചെയ്യുന്നത് ഏത് ഘടകമാണ്?
+A) ഹരിതകം (Chlorophyll)
+B) ജലം
+C) ഓക്സിജൻ
+D) വേരുകൾ
+Ans: A
+Exp: ഇലകളിലുള്ള ഹരിതകമാണ് സൂര്യപ്രകാശത്തെ ആഗിരണം ചെയ്യുന്നത്.
+
+2. താഴെ പറയുന്നവയിൽ സ്വയംപോഷി അല്ലാത്ത ജീവി ഏത്?
+A) ആൽമരം
+B) പന്നൽ സസ്യം
+C) കൂൺ (Mushroom)
+D) നെല്ല്
+Ans: C
+Exp: കൂൺ ഒരു ഫംഗസ് ആണ്. ഇതിന് ഹരിതകം ഇല്ലാത്തതിനാൽ സ്വന്തമായി ആഹാരം ഉണ്ടാക്കാൻ കഴിയില്ല.`;
+    }
+
+    function parseBulkQuestions() {
+      const subject = document.getElementById("genSubject").value;
+      const topic = document.getElementById("genTopic").value.trim() || `${subject} Practice Test`;
+      const duration = parseInt(document.getElementById("genDuration").value);
+      const rawText = document.getElementById("bulkQuestionsInput").value.trim();
+
+      if (!rawText) {
+        alert("Please paste your questions first.");
+        return;
+      }
+
+      const blocks = rawText.split(/\n\s*\n/);
+      const parsedQuestions = [];
+      const fontClass = getFontClassForSubject(subject);
+
+      blocks.forEach(block => {
+        const lines = block.split("\n").map(l => l.trim()).filter(Boolean);
+        if (lines.length < 5) return;
+
+        const stem = lines[0].replace(/^\d+[\.\)]\s*/, "");
+        const optA = (lines[1] || "").replace(/^[Aa][\.\)]\s*/, "");
+        const optB = (lines[2] || "").replace(/^[Bb][\.\)]\s*/, "");
+        const optC = (lines[3] || "").replace(/^[Cc][\.\)]\s*/, "");
+        const optD = (lines[4] || "").replace(/^[Dd][\.\)]\s*/, "");
+
+        let correctIndex = 0;
+        let explanation = "";
+
+        lines.slice(5).forEach(extra => {
+          if (/^ans/i.test(extra)) {
+            const letter = extra.split(":")[1]?.trim().toUpperCase();
+            if (letter === "B") correctIndex = 1;
+            else if (letter === "C") correctIndex = 2;
+            else if (letter === "D") correctIndex = 3;
+          } else if (/^exp/i.test(extra)) {
+            explanation = extra.split(":").slice(1).join(":").trim();
+          }
+        });
+
+        parsedQuestions.push({
+          stem,
+          options: [optA, optB, optC, optD],
+          correctIndex,
+          explanation,
+          fontClass
+        });
+      });
+
+      if (parsedQuestions.length === 0) {
+        alert("Could not parse questions. Click 'Insert Format Example' to see the expected layout.");
+        return;
+      }
+
+      currentAdminDraft = {
+        subject,
+        topic,
+        durationMinutes: duration,
+        summaryPoints: [],
+        questions: parsedQuestions
+      };
+
+      renderAdminEditor(currentAdminDraft);
+    }
+
+    function triggerAIGeneration() {
+      const subject = document.getElementById("genSubject").value;
+      const topic = document.getElementById("genTopic").value.trim() || `${subject} Chapter`;
+      const count = parseInt(document.getElementById("genCount").value);
+      const duration = parseInt(document.getElementById("genDuration").value);
+
+      const fontClass = getFontClassForSubject(subject);
+      const summary = [
+        `${topic} എന്ന പാഠഭാഗത്തിലെ പ്രധാന ആശയങ്ങൾ.`,
+        "CMKids സ്കോളർഷിപ്പ് പരീക്ഷയ്ക്ക് പ്രധാനമായ വസ്തുതകൾ."
+      ];
+
+      const questions = [];
       for (let i = 0; i < count; i++) {
-        let template = sampleQuestions[i % sampleQuestions.length];
-        finalQuestions.push({
-          stem: `[ചോദ്യം ${i+1}] ${template.stem}`,
-          options: [...template.options],
-          correctIndex: template.correctIndex,
-          explanation: template.explanation,
-          fontClass: fontClass
+        questions.push({
+          stem: `[ചോദ്യം ${i + 1}] ${topic} എന്ന വിഷയവുമായി ബന്ധപ്പെട്ട് ശരിയായ പ്രസ്താവന ഏതാണ്?`,
+          options: ["ഓപ്ഷൻ A", "ഓപ്ഷൻ B", "ഓപ്ഷൻ C", "ഓപ്ഷൻ D"],
+          correctIndex: 0,
+          explanation: "പാഠപുസ്തകത്തിലെ നിർവചനപ്രകാരം ഓപ്ഷൻ A ആണ് ശരിയായ ഉത്തരം.",
+          fontClass
         });
       }
 
-      return { summary: summary, questions: finalQuestions };
+      currentAdminDraft = { subject, topic, durationMinutes: duration, summaryPoints: summary, questions };
+      renderAdminEditor(currentAdminDraft);
     }
 
-    // ============================================================
-    // 6. ADMIN INLINE VERIFICATION & SCHEDULING
-    // ============================================================
+    function addBlankDraftQuestion() {
+      const subject = document.getElementById("genSubject").value;
+      const topic = document.getElementById("genTopic").value.trim() || `${subject} Mock Test`;
+      const duration = parseInt(document.getElementById("genDuration").value);
+
+      if (!currentAdminDraft) {
+        currentAdminDraft = { subject, topic, durationMinutes: duration, summaryPoints: [], questions: [] };
+      }
+
+      currentAdminDraft.questions.push({
+        stem: "",
+        options: ["", "", "", ""],
+        correctIndex: 0,
+        explanation: "",
+        fontClass: getFontClassForSubject(subject)
+      });
+
+      renderAdminEditor(currentAdminDraft);
+    }
+
+    function getFontClassForSubject(subject) {
+      if (subject === "Arabic") return "arabic-font";
+      if (subject === "Urdu") return "urdu-font";
+      if (subject === "Hindi" || subject === "Sanskrit") return "devanagari-font";
+      if (subject === "English") return "";
+      return "malayalam-font";
+    }
+
     function renderAdminEditor(draft) {
-      document.getElementById("editSummaryPoints").value = draft.summaryPoints.join("\n");
+      document.getElementById("editSummaryPoints").value = (draft.summaryPoints || []).join("\n");
       const container = document.getElementById("questionsEditorContainer");
       container.innerHTML = "";
 
@@ -996,20 +1619,18 @@
             <button onclick="removeDraftQuestion(${idx})" class="text-xs text-red-500 hover:text-red-700 font-semibold">Delete</button>
           </div>
           <div>
-            <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Question Stem</label>
-            <input type="text" value="${escapeHtml(q.stem)}" onchange="updateDraftQuestionStem(${idx}, this.value)" class="w-full text-sm font-semibold rounded-lg border-slate-300 p-2 bg-white border ${q.fontClass || 'malayalam-font'}"/>
+            <input type="text" placeholder="Enter question stem..." value="${escapeHtml(q.stem)}" onchange="currentAdminDraft.questions[${idx}].stem = this.value" class="w-full text-sm font-semibold rounded-lg border-slate-300 p-2 bg-white border ${q.fontClass || 'malayalam-font'}"/>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
             ${q.options.map((opt, optIdx) => `
               <div class="flex items-center space-x-2 bg-white p-2 rounded-lg border border-slate-200">
-                <input type="radio" name="draft_correct_${idx}" value="${optIdx}" ${q.correctIndex === optIdx ? 'checked' : ''} onchange="updateDraftCorrectKey(${idx}, ${optIdx})" class="text-blue-600 focus:ring-blue-500"/>
-                <input type="text" value="${escapeHtml(opt)}" onchange="updateDraftOption(${idx}, ${optIdx}, this.value)" class="w-full text-xs border-0 p-0 focus:ring-0 ${q.fontClass || 'malayalam-font'}"/>
+                <input type="radio" name="draft_correct_${idx}" value="${optIdx}" ${q.correctIndex === optIdx ? 'checked' : ''} onchange="currentAdminDraft.questions[${idx}].correctIndex = ${optIdx}" class="text-blue-600"/>
+                <input type="text" placeholder="Option ${String.fromCharCode(65 + optIdx)}" value="${escapeHtml(opt)}" onchange="currentAdminDraft.questions[${idx}].options[${optIdx}] = this.value" class="w-full text-xs border-0 p-0 focus:ring-0 ${q.fontClass || 'malayalam-font'}"/>
               </div>
             `).join("")}
           </div>
           <div>
-            <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Explanation (മലയാള വിശദീകരണം)</label>
-            <input type="text" value="${escapeHtml(q.explanation || '')}" onchange="updateDraftExplanation(${idx}, this.value)" class="w-full text-xs rounded-lg border-slate-300 p-2 bg-white border malayalam-font text-slate-600"/>
+            <input type="text" placeholder="Explanation (മലയാള വിശദീകരണം)..." value="${escapeHtml(q.explanation || '')}" onchange="currentAdminDraft.questions[${idx}].explanation = this.value" class="w-full text-xs rounded-lg border-slate-300 p-2 bg-white border malayalam-font text-slate-600"/>
           </div>
         `;
         container.appendChild(qCard);
@@ -1019,107 +1640,155 @@
       document.getElementById("scheduleActionBar").classList.remove("hidden");
     }
 
-    function updateDraftQuestionStem(idx, val) { currentAdminDraft.questions[idx].stem = val; }
-    function updateDraftOption(qIdx, optIdx, val) { currentAdminDraft.questions[qIdx].options[optIdx] = val; }
-    function updateDraftCorrectKey(qIdx, optIdx) { currentAdminDraft.questions[qIdx].correctIndex = optIdx; }
-    function updateDraftExplanation(idx, val) { currentAdminDraft.questions[idx].explanation = val; }
     function removeDraftQuestion(idx) {
       currentAdminDraft.questions.splice(idx, 1);
       renderAdminEditor(currentAdminDraft);
     }
 
     async function saveDraftToQuestionBank() {
-      if (!currentAdminDraft) return;
+      if (!currentAdminDraft || currentAdminDraft.questions.length === 0) return;
+      const points = document.getElementById("editSummaryPoints").value.trim().split("\n").filter(Boolean);
 
-      const summaryText = document.getElementById("editSummaryPoints").value.trim();
-      const points = summaryText.split("\n").filter(p => p.trim().length > 0);
-
-      const bankItem = {
-        subject: currentAdminDraft.subject,
-        topic: currentAdminDraft.topic,
-        summaryPoints: points,
-        questions: currentAdminDraft.questions
-      };
-
-      questionBank.unshift(bankItem);
-      document.getElementById("repoCount").innerText = questionBank.length;
-
-      // Sync to Supabase
       if (supabaseClient) {
         await supabaseClient.from("question_bank").insert([{
-          subject: bankItem.subject,
-          topic_name: bankItem.topic,
-          summary_points: bankItem.summaryPoints,
-          questions: bankItem.questions
+          subject: currentAdminDraft.subject,
+          topic_name: currentAdminDraft.topic,
+          summary_points: points,
+          questions: currentAdminDraft.questions
         }]);
       }
 
-      alert("Topic and questions preserved into AKHMUP Question Repository!");
-      renderQuestionBank();
+      await syncAllFromCloud();
+      document.getElementById("repoCount").innerText = questionBank.length;
+      alert("Saved permanently to Question Bank Repository!");
     }
 
     async function publishAndScheduleExam() {
-      if (!currentAdminDraft || currentAdminDraft.questions.length === 0) {
-        alert("Please generate or add questions first.");
-        return;
-      }
+      if (!currentAdminDraft || currentAdminDraft.questions.length === 0) return;
+      const points = document.getElementById("editSummaryPoints").value.trim().split("\n").filter(Boolean);
+      const topicTitle = document.getElementById("genTopic").value.trim() || currentAdminDraft.topic;
 
-      const summaryText = document.getElementById("editSummaryPoints").value.trim();
-      const points = summaryText.split("\n").filter(p => p.trim().length > 0);
-
-      const newExam = {
-        id: "exam-" + Date.now(),
-        title: `Daily Mock: ${currentAdminDraft.topic}`,
-        subject: currentAdminDraft.subject,
-        durationMinutes: currentAdminDraft.durationMinutes || 15,
-        summaryPoints: points,
-        questions: currentAdminDraft.questions
-      };
-
-      scheduledExams.unshift(newExam);
-
-      // Save to Supabase
       if (supabaseClient) {
         await supabaseClient.from("scheduled_exams").insert([{
-          title: newExam.title,
-          subject: newExam.subject,
-          duration_minutes: newExam.durationMinutes,
+          title: topicTitle,
+          subject: currentAdminDraft.subject,
+          duration_minutes: currentAdminDraft.durationMinutes || 15,
           scheduled_at: new Date().toISOString(),
-          summary_points: newExam.summaryPoints,
-          questions: newExam.questions,
+          summary_points: points,
+          questions: currentAdminDraft.questions,
           is_active: true
         }]);
       }
 
-      alert("Exam successfully scheduled! Students of AKHMUP School can now attend.");
-      renderStudentExamsList();
-      switchRole("student");
+      await syncAllFromCloud();
+      alert("Exam published! Students can now attend this test.");
+    }
+
+    function renderQuestionBank() {
+      const grid = document.getElementById("questionBankGrid");
+      grid.innerHTML = "";
+
+      if (questionBank.length === 0) {
+        grid.innerHTML = `<p class="text-xs text-slate-400 col-span-3">No saved topics in repository yet.</p>`;
+        return;
+      }
+
+      questionBank.forEach((item, idx) => {
+        const card = document.createElement("div");
+        card.className = "p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-2";
+        card.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-800">${item.subject}</span>
+            <span class="text-[11px] text-slate-500 font-semibold">${item.questions.length} MCQs</span>
+          </div>
+          <h4 class="text-sm font-bold text-slate-900">${item.topic}</h4>
+          <button onclick="scheduleFromRepo(${idx})" class="w-full mt-2 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition">
+            Load into Exam Editor
+          </button>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function scheduleFromRepo(idx) {
+      const item = questionBank[idx];
+      currentAdminDraft = {
+        subject: item.subject,
+        topic: item.topic,
+        durationMinutes: 15,
+        summaryPoints: item.summaryPoints || [],
+        questions: item.questions || []
+      };
+      document.getElementById("genSubject").value = item.subject;
+      document.getElementById("genTopic").value = item.topic;
+      switchAdminTab("generate");
+      renderAdminEditor(currentAdminDraft);
+    }
+
+    function buildCombinedMegaMock() {
+      if (questionBank.length === 0) {
+        alert("Save some topics to the repository first.");
+        return;
+      }
+      let combinedQ = [];
+      questionBank.forEach(b => combinedQ.push(...b.questions));
+
+      currentAdminDraft = {
+        subject: "Combined Mock Exam",
+        topic: "Combined Multi-Subject Mega Mock",
+        durationMinutes: 30,
+        summaryPoints: ["Comprehensive CMKids scholarship model exam covering multiple subjects."],
+        questions: combinedQ
+      };
+      document.getElementById("genSubject").value = "Combined Mock Exam";
+      document.getElementById("genTopic").value = currentAdminDraft.topic;
+      switchAdminTab("generate");
+      renderAdminEditor(currentAdminDraft);
     }
 
     // ============================================================
-    // 7. STUDENT EXAM WORKFLOW
+    // 7. STUDENT PORTAL & ONLINE MCQ EXAM CONDUCTOR
     // ============================================================
+    function setupStudentDashboard() {
+      document.getElementById("bannerStudentAdm").innerText = `Adm No: ${currentUser.admission_no}`;
+      document.getElementById("bannerStudentBatch").innerText = `Batch ${currentUser.batch_year || "2026-27"}`;
+      document.getElementById("bannerStudentWelcome").innerText = `Welcome, ${currentUser.full_name}!`;
+
+      const mentor = allProfiles.find(m => m.id === currentUser.mentor_id);
+      document.getElementById("studentAssignedMentorDisplay").innerText = mentor ? `Mentor: ${mentor.full_name}` : "Mentor: General School Pool";
+
+      const myAttempts = allAttempts.filter(a => a.student_id === currentUser.id);
+      document.getElementById("studentAvgScoreDisplay").innerText = `${myAttempts.length} Tests Completed`;
+
+      returnToStudentList();
+      renderStudentExamsList();
+    }
+
     function renderStudentExamsList() {
       const container = document.getElementById("studentExamsList");
       container.innerHTML = "";
 
+      if (scheduledExams.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-400 col-span-2 py-6 text-center">No mock exams scheduled yet. Check back soon.</p>`;
+        return;
+      }
+
       scheduledExams.forEach(exam => {
+        const myAttempt = allAttempts.find(a => a.student_id === currentUser.id && a.exam_id === exam.id);
         const card = document.createElement("div");
         card.className = "p-5 rounded-2xl border border-slate-200 bg-white hover:border-blue-300 shadow-sm transition space-y-4";
         card.innerHTML = `
           <div class="flex items-start justify-between">
             <div>
-              <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800">
-                ${exam.subject}
-              </span>
+              <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800">${exam.subject}</span>
               <h4 class="text-base font-bold text-slate-900 mt-2">${exam.title}</h4>
             </div>
             <span class="text-xs font-bold text-slate-500">${exam.durationMinutes} Mins</span>
           </div>
           <div class="flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100">
-            <span>${exam.questions.length} MCQs</span>
+            <span>${exam.questions.length} MCQs ${myAttempt ? `• <b class="text-emerald-600">Score: ${myAttempt.score}/${myAttempt.total_questions}</b>` : ""}</span>
             <button onclick="openPreQuizSummary('${exam.id}')" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold transition">
-              Attend Exam →
+              ${myAttempt ? "Re-attempt Exam →" : "Attend Exam →"}
             </button>
           </div>
         `;
@@ -1147,7 +1816,7 @@
           summaryList.appendChild(li);
         });
       } else {
-        summaryList.innerHTML = `<li>ക്വിസ് നേരിട്ട് തുടങ്ങാവുന്നതാണ്. (Directly enter to attend the quiz).</li>`;
+        summaryList.innerHTML = `<li>പരീക്ഷ തുടങ്ങുന്നതിനായി താഴെ കാണുന്ന 'Start Quiz' ബട്ടൺ അമർത്തുക.</li>`;
       }
     }
 
@@ -1205,7 +1874,6 @@
       stemEl.className = `text-base sm:text-lg font-bold text-slate-900 leading-relaxed ${q.fontClass || 'malayalam-font'}`;
       stemEl.innerText = q.stem;
 
-      // Mark for review button state
       const btnRev = document.getElementById("btnMarkReview");
       if (markedForReview[activeQuestionIdx]) {
         btnRev.className = "text-xs font-bold text-white bg-amber-500 px-2.5 py-1 rounded-lg";
@@ -1215,22 +1883,17 @@
         btnRev.innerText = "Mark for Review";
       }
 
-      // Render 4 Options
       const optContainer = document.getElementById("quizOptionsContainer");
       optContainer.innerHTML = "";
       q.options.forEach((opt, idx) => {
         const isSelected = studentResponses[activeQuestionIdx] === idx;
         const optCard = document.createElement("div");
-        optCard.onclick = () => selectQuizAnswer(idx);
+        optCard.onclick = () => { studentResponses[activeQuestionIdx] = idx; renderCurrentQuizQuestion(); };
         optCard.className = `p-3.5 rounded-xl border text-sm font-semibold cursor-pointer transition flex items-center space-x-3 ${
-          isSelected 
-            ? 'bg-blue-50 border-blue-600 text-blue-900 ring-1 ring-blue-600' 
-            : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700'
+          isSelected ? 'bg-blue-50 border-blue-600 text-blue-900 ring-1 ring-blue-600' : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700'
         }`;
         optCard.innerHTML = `
-          <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-            isSelected ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-500'
-          }">
+          <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isSelected ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-500'}">
             ${String.fromCharCode(65 + idx)}
           </span>
           <span class="${q.fontClass || 'malayalam-font'}">${opt}</span>
@@ -1238,7 +1901,6 @@
         optContainer.appendChild(optCard);
       });
 
-      // Prev/Next control states
       document.getElementById("btnPrevQ").disabled = activeQuestionIdx === 0;
       if (activeQuestionIdx === activeExamInstance.questions.length - 1) {
         document.getElementById("btnNextQ").innerText = "Submit Exam";
@@ -1249,11 +1911,6 @@
       }
 
       renderPalette();
-    }
-
-    function selectQuizAnswer(optIdx) {
-      studentResponses[activeQuestionIdx] = optIdx;
-      renderCurrentQuizQuestion();
     }
 
     function toggleMarkForReview() {
@@ -1278,15 +1935,10 @@
         btn.onclick = () => { activeQuestionIdx = idx; renderCurrentQuizQuestion(); };
 
         let colorClasses = "bg-slate-100 text-slate-700 hover:bg-slate-200";
-        if (studentResponses[idx] !== undefined) {
-          colorClasses = "bg-emerald-500 text-white font-bold";
-        } else if (markedForReview[idx]) {
-          colorClasses = "bg-amber-400 text-slate-900 font-bold";
-        }
+        if (studentResponses[idx] !== undefined) colorClasses = "bg-emerald-500 text-white font-bold";
+        else if (markedForReview[idx]) colorClasses = "bg-amber-400 text-slate-900 font-bold";
 
-        if (idx === activeQuestionIdx) {
-          colorClasses += " ring-2 ring-blue-600 ring-offset-2";
-        }
+        if (idx === activeQuestionIdx) colorClasses += " ring-2 ring-blue-600 ring-offset-2";
 
         btn.className = `h-9 w-9 rounded-xl text-xs font-bold flex items-center justify-center transition ${colorClasses}`;
         btn.innerText = idx + 1;
@@ -1309,9 +1961,7 @@
       const total = activeExamInstance.questions.length;
 
       activeExamInstance.questions.forEach((q, idx) => {
-        if (studentResponses[idx] === q.correctIndex) {
-          correctCount++;
-        }
+        if (studentResponses[idx] === q.correctIndex) correctCount++;
       });
 
       const accuracy = Math.round((correctCount / total) * 100);
@@ -1320,18 +1970,19 @@
       document.getElementById("resAccuracy").innerText = `${accuracy}%`;
       document.getElementById("resStatus").innerText = accuracy >= 60 ? "Passed" : "Needs Review";
 
-      // Save Attempt to Supabase
       if (supabaseClient) {
         await supabaseClient.from("exam_attempts").insert([{
-          exam_id: activeExamInstance.id.includes("-") && activeExamInstance.id.length > 20 ? activeExamInstance.id : null,
+          exam_id: activeExamInstance.id,
+          student_id: currentUser.id,
+          student_login_id: currentUser.login_id,
           score: correctCount,
           total_questions: total,
           accuracy: accuracy,
           answers: studentResponses
         }]);
+        await syncAllFromCloud();
       }
 
-      // Render Detailed Question Rationales
       const container = document.getElementById("resultsDetailedQuestionsContainer");
       container.innerHTML = "";
 
@@ -1360,124 +2011,129 @@
     }
 
     // ============================================================
-    // 8. QUESTION BANK & MEGA COMBINED MOCK
+    // 8. MENTOR PORTAL: ATTENDANCE, MARKS & ANSWER SHEET VIEWER
     // ============================================================
-    function renderQuestionBank() {
-      const grid = document.getElementById("questionBankGrid");
-      grid.innerHTML = "";
-
-      questionBank.forEach((item, idx) => {
-        const card = document.createElement("div");
-        card.className = "p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-2";
-        card.innerHTML = `
-          <div class="flex items-center justify-between">
-            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-800">${item.subject}</span>
-            <span class="text-[11px] text-slate-500 font-semibold">${item.questions.length} Questions</span>
-          </div>
-          <h4 class="text-sm font-bold text-slate-900">${item.topic}</h4>
-          <p class="text-xs text-slate-500">${item.summaryPoints ? item.summaryPoints.length : 0} Summary Points</p>
-          <button onclick="scheduleFromRepo(${idx})" class="w-full mt-2 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition">
-            Schedule Daily Exam
-          </button>
-        `;
-        grid.appendChild(card);
+    function setupMentorDashboard() {
+      const examSelect = document.getElementById("mentorExamFilter");
+      examSelect.innerHTML = `<option value="latest">Latest Exam (${scheduledExams[0]?.title || "None"})</option>`;
+      scheduledExams.forEach(e => {
+        const opt = document.createElement("option");
+        opt.value = e.id;
+        opt.innerText = `${e.title} (${e.subject})`;
+        examSelect.appendChild(opt);
       });
+      renderMentorDashboard();
     }
 
-    function scheduleFromRepo(idx) {
-      const item = questionBank[idx];
-      currentAdminDraft = {
-        subject: item.subject,
-        topic: item.topic,
-        durationMinutes: 15,
-        summaryPoints: item.summaryPoints || [],
-        questions: item.questions || []
-      };
-      switchAdminTab("generate");
-      renderAdminEditor(currentAdminDraft);
-    }
+    function renderMentorDashboard() {
+      const myMentees = allProfiles.filter(p => p.role === "student" && p.mentor_id === currentUser.id);
+      document.getElementById("mentorTotalMenteesCount").innerText = myMentees.length;
 
-    function buildCombinedMegaMock() {
-      if (questionBank.length === 0) {
-        alert("Please add some topics to the repository first.");
-        return;
-      }
+      const filterVal = document.getElementById("mentorExamFilter").value;
+      const targetExam = filterVal === "latest" ? scheduledExams[0] : scheduledExams.find(e => e.id === filterVal);
 
-      let combinedQuestions = [];
-      let combinedSummary = [
-        "CMKids Comprehensive Mega Mock Exam combining all subjects.",
-        "Maintain balance between science, mathematics, social studies, and language papers."
-      ];
-
-      questionBank.forEach(b => {
-        combinedQuestions.push(...b.questions);
-      });
-
-      currentAdminDraft = {
-        subject: "Combined Mock Exam",
-        topic: "All Subjects Mega Mock (എല്ലാ വിഷയങ്ങളും ചേർത്തുള്ള മോഡൽ പരീക്ഷ)",
-        durationMinutes: 30,
-        summaryPoints: combinedSummary,
-        questions: combinedQuestions
-      };
-
-      switchAdminTab("generate");
-      renderAdminEditor(currentAdminDraft);
-    }
-
-    // ============================================================
-    // 9. MENTOR & STUDENT ROSTER VIEWS
-    // ============================================================
-    function renderStudentRosters() {
-      const tbody = document.getElementById("studentRosterTableBody");
-      tbody.innerHTML = "";
-
-      studentsRoster.forEach(s => {
-        const tr = document.createElement("tr");
-        tr.className = "hover:bg-slate-50";
-        tr.innerHTML = `
-          <td class="p-3 font-mono font-bold">${s.admNo}</td>
-          <td class="p-3 font-semibold text-slate-900">${s.name}</td>
-          <td class="p-3">${s.mentor}</td>
-          <td class="p-3">${s.testsTaken} Tests</td>
-          <td class="p-3 font-bold text-emerald-600">${s.accuracy}%</td>
-          <td class="p-3 text-right">
-            <button onclick="alert('Mentor re-assignment dialog')" class="text-xs text-blue-600 hover:underline">Reassign Mentor</button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    function renderMentorRoster() {
       const tbody = document.getElementById("mentorMenteesTableBody");
       tbody.innerHTML = "";
 
-      studentsRoster.forEach(s => {
+      if (myMentees.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400">No students have been assigned to you yet.</td></tr>`;
+        document.getElementById("mentorAttendedCount").innerText = "0 / 0";
+        document.getElementById("mentorAvgAccuracy").innerText = "--";
+        return;
+      }
+
+      let attendedCount = 0;
+      let totalAcc = 0;
+
+      myMentees.forEach(stu => {
+        const attempt = targetExam 
+          ? allAttempts.find(a => a.student_id === stu.id && a.exam_id === targetExam.id)
+          : allAttempts.find(a => a.student_id === stu.id);
+
+        if (attempt) {
+          attendedCount++;
+          totalAcc += Number(attempt.accuracy || 0);
+        }
+
         const tr = document.createElement("tr");
         tr.className = "hover:bg-slate-50";
         tr.innerHTML = `
-          <td class="p-3 font-semibold text-slate-900">${s.name}</td>
-          <td class="p-3 font-mono">${s.admNo}</td>
-          <td class="p-3">Daily Mock: ജീവന്റെ തുടിപ്പുകൾ</td>
-          <td class="p-3 font-bold text-slate-900">8 / 10</td>
+          <td class="p-3 font-mono font-bold">${stu.admission_no}</td>
+          <td class="p-3 font-bold text-slate-900">${stu.full_name}</td>
+          <td class="p-3">${targetExam ? targetExam.title : "No Exam Scheduled"}</td>
           <td class="p-3">
-            <span class="font-bold text-emerald-600">${s.accuracy}%</span>
-            <span class="text-[10px] text-red-500 ml-1">(${s.weakSubject})</span>
+            ${attempt 
+              ? `<span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[11px]">✓ Attended</span>`
+              : `<span class="px-2.5 py-1 rounded-full bg-red-50 text-red-700 font-bold text-[11px]">✕ Not Attended</span>`
+            }
+          </td>
+          <td class="p-3 font-bold text-slate-900">
+            ${attempt ? `${attempt.score} / ${attempt.total_questions} (${attempt.accuracy}%)` : "--"}
           </td>
           <td class="p-3 text-right">
-            <button onclick="prompt('Send study guidance note to ' + '${s.name}' + ':')" class="px-3 py-1 rounded bg-blue-50 text-blue-700 hover:bg-blue-100 font-bold text-xs">
-              Feedback
-            </button>
+            ${attempt 
+              ? `<button onclick="openStudentAnswerSheet('${attempt.id}')" class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition">View Answers</button>`
+              : `<span class="text-xs text-slate-400">No submission</span>`
+            }
           </td>
         `;
         tbody.appendChild(tr);
       });
+
+      document.getElementById("mentorAttendedCount").innerText = `${attendedCount} / ${myMentees.length}`;
+      document.getElementById("mentorAvgAccuracy").innerText = attendedCount > 0 ? `${Math.round(totalAcc / attendedCount)}%` : "--";
+    }
+
+    function openStudentAnswerSheet(attemptId) {
+      const attempt = allAttempts.find(a => a.id === attemptId);
+      if (!attempt) return;
+
+      const student = allProfiles.find(p => p.id === attempt.student_id);
+      const exam = scheduledExams.find(e => e.id === attempt.exam_id);
+
+      document.getElementById("modalAnswerStudentName").innerText = `${student?.full_name || "Student"} (Adm: ${student?.admission_no || "--"})`;
+      document.getElementById("modalAnswerExamMeta").innerText = `${exam?.title || "Mock Exam"} • Score: ${attempt.score}/${attempt.total_questions} (${attempt.accuracy}%)`;
+
+      const body = document.getElementById("modalAnswerBody");
+      body.innerHTML = "";
+
+      if (!exam || !exam.questions) {
+        body.innerHTML = `<p class="text-xs text-slate-500">Question details unavailable.</p>`;
+      } else {
+        const ansMap = attempt.answers || {};
+        exam.questions.forEach((q, idx) => {
+          const chosen = ansMap[idx];
+          const isRight = chosen === q.correctIndex;
+
+          const card = document.createElement("div");
+          card.className = `p-4 rounded-2xl border ${isRight ? "border-emerald-200 bg-emerald-50/40" : "border-red-200 bg-red-50/40"} space-y-1.5`;
+          card.innerHTML = `
+            <div class="flex items-center justify-between text-xs font-bold">
+              <span class="${isRight ? "text-emerald-700" : "text-red-700"}">Q.${idx + 1} • ${isRight ? "Correct" : "Wrong"}</span>
+              <span class="text-slate-500">Key: Option ${String.fromCharCode(65 + q.correctIndex)}</span>
+            </div>
+            <p class="text-sm font-bold text-slate-900 ${q.fontClass || "malayalam-font"}">${q.stem}</p>
+            <p class="text-xs text-slate-700 ${q.fontClass || "malayalam-font"}">
+              <b>Student Selected:</b> ${chosen !== undefined ? q.options[chosen] : "Unanswered"}
+            </p>
+            <p class="text-xs text-emerald-800 ${q.fontClass || "malayalam-font"}">
+              <b>Correct Answer:</b> ${q.options[q.correctIndex]}
+            </p>
+          `;
+          body.appendChild(card);
+        });
+      }
+
+      document.getElementById("answerSheetModal").classList.remove("hidden");
+    }
+
+    function closeAnswerModal() {
+      document.getElementById("answerSheetModal").classList.add("hidden");
     }
 
     function escapeHtml(text) {
       if (!text) return "";
-      return text.replace(/"/g, "&quot;");
+      return String(text).replace(/"/g, "&quot;").replace(/'/g, "&#39;");
     }
   </script>
 </body>
