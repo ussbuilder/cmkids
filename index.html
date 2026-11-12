@@ -1552,7 +1552,7 @@ Strict Requirements:
       btn.innerHTML = `<span class="inline-block animate-spin mr-2">⚙</span> Generating ${count} ${targetLanguage} MCQs via Gemini AI...`;
 
       // Try current active Gemini models in order of speed & availability
-      const candidateModels = ["gemini-3.5-flash-lite", "gemini-3.8-flash", "gemini-2.5-flash"];
+      const candidateModels = ["gemini-3.8-flash", "gemini-3.5-flash"];
       let parsedResult = null;
       let lastErrorMsg = "";
 
