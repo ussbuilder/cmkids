@@ -1,0 +1,5 @@
+  body { font-family: 'Inter', sans-serif; }
+  .malayalam-font { font-family: 'Manjari', sans-serif; }
+  .arabic-font { font-family: 'Amiri', serif; direction: rtl; }
+  .urdu-font { font-family: 'Noto Nastaliq Urdu', serif; direction: rtl; }
+  .devanagari-font { font-family: 'Noto Sans Devanagari', sans-serif; }
