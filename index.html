@@ -22,7 +22,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700;800;900&family=Manjari:wght@400;700&family=Noto+Nastaliq+Urdu:wght@400;700&family=Noto+Sans+Devanagari:wght@400;600&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="styles.css?v=1">
+  <link rel="stylesheet" href="styles.css?v=20261116">
 </head>
 <body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col antialiased">
 
@@ -371,8 +371,19 @@
                 placeholder="1. ചോദ്യം ഇവിടെ പേസ്റ്റ് ചെയ്യുക?&#10;A) ഓപ്ഷൻ 1&#10;B) ഓപ്ഷൻ 2&#10;C) ഓപ്ഷൻ 3&#10;D) ഓപ്ഷൻ 4&#10;Ans: B&#10;Exp: വിശദീകരണം (Optional)" 
                 class="w-full text-xs rounded-xl border-slate-300 p-3 bg-white border malayalam-font leading-relaxed"
               ></textarea>
-              <div class="p-3 rounded-xl bg-indigo-50 border border-indigo-200 space-y-2">
-                <p class="text-[11px] text-indigo-900 leading-relaxed">Pasted questions in a messy layout (different numbering, answer key at the end, PDF copy)? Let AI convert them to the format below. Your text is replaced so you can review it, and you can undo.</p>
+              <div class="p-3 rounded-xl bg-indigo-50 border border-indigo-200 space-y-2.5">
+                <p class="text-[11px] text-indigo-900 leading-relaxed">Messy layout, answer key at the end, or a PDF? Paste it above and/or upload a PDF, and AI converts it to the format below. There is no limit on the number of questions. Your text is replaced so you can review it, and you can undo.</p>
+                <div class="flex flex-wrap items-center gap-2">
+                  <label class="px-3 py-1.5 rounded-lg bg-white hover:bg-indigo-100 border border-indigo-300 text-indigo-800 text-xs font-bold cursor-pointer transition">
+                    📄 Upload PDF
+                    <input type="file" accept="application/pdf,.pdf" class="hidden" onchange="handlePdfSelected('bulk', this)">
+                  </label>
+                  <span id="bulkPdfChip"></span>
+                </div>
+                <label class="flex items-start gap-2 text-[11px] text-indigo-900 leading-relaxed">
+                  <input type="checkbox" id="bulkVerifyOnline" checked class="mt-0.5 rounded border-indigo-300">
+                  <span><b>Verify questions and answer keys online</b> (Google Search). Slower, but it points out errors, fixes wrong keys and lists every change. Untick for the fastest reformat only.</span>
+                </label>
                 <button type="button" id="btnAiReformat" onclick="reformatPastedWithAI()" class="w-full py-2.5 px-4 rounded-xl font-bold text-xs bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition">✨ Reformat with AI</button>
                 <p id="aiReformatStatus" class="text-[11px] font-semibold text-slate-500"></p>
               </div>
@@ -434,6 +445,20 @@
                 ></textarea>
               </div>
 
+              <div class="space-y-2">
+                <div class="flex flex-wrap items-center gap-2">
+                  <label class="px-3 py-1.5 rounded-lg bg-white hover:bg-blue-50 border border-slate-300 text-slate-700 text-xs font-bold cursor-pointer transition">
+                    📄 Upload PDF (chapter / notes)
+                    <input type="file" accept="application/pdf,.pdf" class="hidden" onchange="handlePdfSelected('gen', this)">
+                  </label>
+                  <span id="genPdfChip"></span>
+                </div>
+                <label class="flex items-start gap-2 text-[11px] text-slate-700 leading-relaxed">
+                  <input type="checkbox" id="genVerifyOnline" checked class="mt-0.5 rounded border-slate-300">
+                  <span><b>Verify online after generating</b> (Google Search). Checks every question and answer key, fixes errors and lists the changes.</span>
+                </label>
+              </div>
+
               <button 
                 type="button" 
                 id="btnGenerateQuestions"
@@ -442,6 +467,7 @@
               >
                 <span>✨ Generate Real Questions & Summary</span>
               </button>
+              <p id="genAiStatus" class="text-[11px] font-semibold text-slate-500"></p>
             </div>
 
           </div>
@@ -455,10 +481,15 @@
                 <h3 class="text-base font-bold text-slate-900">Verification & Question Editor</h3>
                 <p class="text-xs text-slate-500">Verify questions, correct answer keys, and pre-exam study notes.</p>
               </div>
-              <button type="button" onclick="addBlankDraftQuestion()" class="px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold border border-blue-200 transition">
-                + Add Blank Question
-              </button>
+              <div class="flex flex-wrap items-center gap-2 justify-end">
+                <button type="button" id="btnVerifyDraft" onclick="verifyCurrentDraft()" class="px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold border border-indigo-200 transition">🔍 Verify online</button>
+                <button type="button" onclick="addBlankDraftQuestion()" class="px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold border border-blue-200 transition">
+                  + Add Blank Question
+                </button>
+              </div>
             </div>
+
+            <div id="verifyReportBox" class="hidden mt-4"></div>
 
             <div class="mt-4 p-4 rounded-xl bg-slate-50 border border-slate-200">
               <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
@@ -933,15 +964,15 @@
   <!-- JAVASCRIPT APPLICATION LOGIC -->
 
   <!-- App scripts (order matters: they share one global scope) -->
-  <script src="js/config.js?v=1"></script>
-  <script src="js/utils.js?v=1"></script>
-  <script src="js/data.js?v=1"></script>
-  <script src="js/admin.js?v=1"></script>
-  <script src="js/builder.js?v=1"></script>
-  <script src="js/exams.js?v=1"></script>
-  <script src="js/ai.js?v=1"></script>
-  <script src="js/student.js?v=1"></script>
-  <script src="js/mentor.js?v=1"></script>
-  <script src="js/analytics.js?v=1"></script>
+  <script src="js/config.js?v=20261116"></script>
+  <script src="js/utils.js?v=20261116"></script>
+  <script src="js/data.js?v=20261116"></script>
+  <script src="js/admin.js?v=20261116"></script>
+  <script src="js/builder.js?v=20261116"></script>
+  <script src="js/exams.js?v=20261116"></script>
+  <script src="js/ai.js?v=20261116"></script>
+  <script src="js/student.js?v=20261116"></script>
+  <script src="js/mentor.js?v=20261116"></script>
+  <script src="js/analytics.js?v=20261116"></script>
 </body>
 </html>
