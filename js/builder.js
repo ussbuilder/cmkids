@@ -169,6 +169,11 @@ Exp: കൂൺ ഒരു ഫംഗസ് ആണ്. ഇതിന് ഹരിത
     }
 
     async function triggerAIGeneration() {
+      if (typeof pdfSources === "undefined" || typeof runDraftVerification === "undefined" ||
+          !document.getElementById("genVerifyOnline") || !document.getElementById("genAiStatus")) {
+        alert("Some page files are out of date. Upload index.html, js/ai.js and js/builder.js together, then hard refresh (Ctrl+Shift+R).");
+        return;
+      }
       const subject = document.getElementById("genSubject").value;
       const topic = document.getElementById("genTopic").value.trim();
       const count = Math.max(1, Math.min(50, parseInt(document.getElementById("genCount").value) || 10));

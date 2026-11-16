@@ -43,3 +43,18 @@
     let pendingStudentForMentorAssign = null;
     let examEndTime = 0;
     let quizFinished = false;
+
+    // ============================================================
+    // 3. SHOW UNEXPECTED ERRORS (instead of buttons silently doing nothing)
+    // ============================================================
+    (function () {
+      const shown = new Set();
+      function notify(msg) {
+        msg = String(msg || "");
+        if (!msg || /^(Script error|ResizeObserver)/i.test(msg) || shown.has(msg)) return;
+        shown.add(msg);
+        alert("Something went wrong: " + msg + "\n\nIf you just updated the site, make sure every changed file is uploaded, then hard refresh (Ctrl+Shift+R).");
+      }
+      window.addEventListener("error", e => notify(e.message));
+      window.addEventListener("unhandledrejection", e => notify(e.reason && e.reason.message ? e.reason.message : e.reason));
+    })();
