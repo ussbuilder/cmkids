@@ -848,18 +848,26 @@
       </div>
 
       <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-        <h3 class="text-base font-bold text-slate-900">Mentee Exam Status & Answer Inspection</h3>
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h3 class="text-base font-bold text-slate-900">Mentee Roster, Exam Status & WhatsApp Alerts</h3>
+            <p class="text-xs text-slate-500">Update optional mentee details or send live exam links and messages via WhatsApp.</p>
+          </div>
+          <button type="button" onclick="openMentorWhatsappModal(null)" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition flex items-center justify-center space-x-1.5 shrink-0">
+            <span>💬 Send WhatsApp to All Mentees</span>
+          </button>
+        </div>
         
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs text-slate-600">
             <thead class="bg-slate-50 text-slate-700 uppercase font-bold border-b border-slate-200">
               <tr>
                 <th class="p-3">Adm No.</th>
-                <th class="p-3">Student Name</th>
+                <th class="p-3">Student & Details</th>
                 <th class="p-3">Exam Title</th>
                 <th class="p-3">Attendance Status</th>
                 <th class="p-3">Marks & Accuracy</th>
-                <th class="p-3 text-right">Answer Sheet</th>
+                <th class="p-3 text-right">Actions & WhatsApp</th>
               </tr>
             </thead>
             <tbody id="mentorMenteesTableBody" class="divide-y divide-slate-100"></tbody>
@@ -999,6 +1007,120 @@
   </div>
 
   <!-- FOOTER -->
+  <!-- ========================================== -->
+  <!-- MODAL: MENTOR EDIT OPTIONAL MENTEE DETAILS -->
+  <!-- ========================================== -->
+  <div id="menteeProfileModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+        <div>
+          <h3 id="mpModalTitle" class="text-base font-black text-slate-900">Mentee Details (Optional)</h3>
+          <p id="mpModalSubtitle" class="text-xs text-slate-500">All fields below are optional.</p>
+        </div>
+        <button type="button" onclick="closeMenteeProfileModal()" class="px-3 py-1.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-xs font-bold text-slate-800">Close ✕</button>
+      </div>
+
+      <form onsubmit="event.preventDefault(); saveMenteeProfileDetails();" class="p-6 overflow-y-auto space-y-4">
+        <div class="flex items-center space-x-4">
+          <div id="mpPhotoPreview" class="h-16 w-16 rounded-2xl bg-blue-100 text-blue-800 font-black text-lg flex items-center justify-center overflow-hidden border border-slate-200 shrink-0">
+            🎓
+          </div>
+          <div class="flex-1 space-y-1.5">
+            <label class="block text-xs font-bold text-slate-700">Student Photo (Optional)</label>
+            <input type="file" id="mpPhotoFileInput" accept="image/*" onchange="handleMenteePhotoFile(this)" class="block w-full text-xs text-slate-500 file:mr-2.5 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer" />
+            <button type="button" id="btnRemoveMenteePhoto" onclick="clearMenteePhoto()" class="hidden text-[11px] font-bold text-red-600 hover:underline">Remove Photo</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">WhatsApp Number</label>
+            <input type="tel" id="mpWhatsappInput" placeholder="e.g., 9876543210" class="w-full text-sm rounded-xl border-slate-300 bg-slate-50 border px-3 py-2 font-mono font-semibold" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Parent / Guardian Details</label>
+            <input type="text" id="mpParentInput" placeholder="e.g., Abdul Kareem (Father)" class="w-full text-sm rounded-xl border-slate-300 bg-slate-50 border px-3 py-2" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Place / Locality</label>
+          <input type="text" id="mpPlaceInput" placeholder="e.g., Chathrathody / Perumanna" class="w-full text-sm rounded-xl border-slate-300 bg-slate-50 border px-3 py-2" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Remarks / Notes</label>
+          <textarea id="mpRemarksInput" rows="3" placeholder="Any academic notes, attendance remarks, or special focus areas..." class="w-full text-sm rounded-xl border-slate-300 bg-slate-50 border p-3"></textarea>
+        </div>
+
+        <div class="flex justify-end space-x-2 pt-2 border-t border-slate-100">
+          <button type="button" onclick="closeMenteeProfileModal()" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600">Cancel</button>
+          <button type="submit" id="btnSaveMenteeProfile" class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm">Save Details</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: MENTOR WHATSAPP MESSAGE & QUEUE     -->
+  <!-- ========================================== -->
+  <div id="mentorWhatsappModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="p-5 border-b border-slate-200 flex items-center justify-between bg-emerald-50/70">
+        <div>
+          <h3 id="waModalTitle" class="text-base font-black text-slate-900">💬 Send WhatsApp Message</h3>
+          <p id="waModalSubtitle" class="text-xs text-slate-600">Opens directly in your phone or desktop WhatsApp.</p>
+        </div>
+        <button type="button" onclick="closeMentorWhatsappModal()" class="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-xs font-bold text-slate-800">Close ✕</button>
+      </div>
+
+      <div class="p-6 overflow-y-auto space-y-4">
+        <div class="flex flex-wrap gap-2">
+          <button type="button" id="waPresetExamBtn" onclick="applyWhatsappPreset('exam')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 text-white shadow-sm transition">
+            📢 New Live Exam Notification
+          </button>
+          <button type="button" id="waPresetCustomBtn" onclick="applyWhatsappPreset('custom')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
+            ✏️ Custom Message
+          </button>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="block text-xs font-bold text-slate-700">Message Text</label>
+            <span class="text-[11px] text-slate-400">Placeholders: <b>{name}</b>, <b>{id}</b>, <b>{exam}</b>, <b>{link}</b></span>
+          </div>
+          <textarea id="waMessageTemplateInput" rows="6" oninput="refreshWhatsappQueuePreview()" class="w-full text-xs rounded-xl border-slate-300 bg-slate-50 border p-3 leading-relaxed font-medium"></textarea>
+        </div>
+
+        <!-- Step-by-Step Send All Bar -->
+        <div id="waQueueControls" class="hidden p-4 rounded-2xl bg-emerald-50 border border-emerald-200 space-y-3">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <p class="text-xs font-black text-emerald-950" id="waQueueProgressLabel">Ready: 0 / 0 sent</p>
+              <p class="text-[11px] text-emerald-800">Tap the button below to open each student's WhatsApp chat one by one.</p>
+            </div>
+            <button type="button" id="btnWaSendNext" onclick="sendNextInWhatsappQueue()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md transition whitespace-nowrap">
+              Send Next →
+            </button>
+          </div>
+          <div id="waQueueListContainer" class="max-h-52 overflow-y-auto divide-y divide-emerald-200/60 bg-white rounded-xl border border-emerald-200"></div>
+        </div>
+
+        <!-- Single Student Send Bar -->
+        <div id="waSingleControls" class="hidden flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-200">
+          <div>
+            <p class="text-xs font-bold text-slate-900" id="waSingleRecipientLabel">Recipient</p>
+            <p class="text-[11px] text-slate-500 font-mono" id="waSinglePhoneLabel">--</p>
+          </div>
+          <button type="button" onclick="sendSingleWhatsappNow()" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md transition">
+            Open WhatsApp & Send →
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
   <footer class="bg-white border-t border-slate-200 mt-auto py-4 text-center text-xs text-slate-400">
     <p>CMKids Scholarship Exam Preparation System • AKHMUP School Chathrathody (Estd. 1982)</p>
   </footer>
@@ -1015,7 +1137,7 @@
   <script src="js/exams.js?v=20261116"></script>
   <script src="js/ai.js?v=20261116"></script>
   <script src="js/student.js?v=20261117a"></script>
-  <script src="js/mentor.js?v=20261116"></script>
+  <script src="js/mentor.js?v=20261117c"></script>
   <script src="js/analytics.js?v=20261116"></script>
 </body>
 </html>
