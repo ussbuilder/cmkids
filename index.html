@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CMKids Scholarship Exam Portal - AKHMUP School Chathrathody</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- SheetJS (XLSX) for Excel School Directory Upload -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <!-- Chart.js for analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+  <!-- Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700;800;900&family=Manjari:wght@400;700&family=Noto+Nastaliq+Urdu:wght@400;700&family=Noto+Sans+Devanagari:wght@400;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css?v=20261116">
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col antialiased">
+
+  <!-- TOP APP HEADER -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      
+      <!-- School & Exam Identity -->
+      <div class="flex items-center space-x-3.5">
+        <div class="h-14 w-14 rounded-xl border border-slate-200 bg-white p-1 shadow-sm flex items-center justify-center overflow-hidden shrink-0">
+          <img 
+            src="IMG-20260330-WA0134.jpg" 
+            alt="AKHMUP School Logo" 
+            class="h-full w-full object-contain"
+            onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'bg-blue-900 text-white font-black text-xs h-full w-full flex items-center justify-center text-center p-1 leading-tight\'>AKHM UPS</div>';"
+          />
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h1 class="text-xl sm:text-2xl font-black tracking-tight text-blue-950">
+              CMKids <span class="text-blue-600 font-bold text-lg sm:text-xl">Scholarship Exam</span>
+            </h1>
+            <span class="hidden md:inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+              OFFICIAL
+            </span>
+          </div>
+          <p class="text-xs sm:text-sm font-semibold text-slate-600 tracking-wide">
+            AKHMUP School Chathrathody 
+            <span class="text-slate-400 font-normal ml-1">| Estd. 1982</span>
+          </p>
+        </div>
+      </div>
+
+      <!-- Right Controls: Cloud Status & Active User Session -->
+      <div class="flex items-center space-x-3">
+        <div id="cloudStatusBadge" class="hidden sm:inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span>Cloud Connected</span>
+        </div>
+
+        <div id="userSessionBar" class="hidden flex items-center space-x-3 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
+          <div class="text-right">
+            <p id="headerUserName" class="text-xs font-bold text-slate-900 leading-tight">User</p>
+            <p id="headerUserRole" class="text-[10px] font-bold uppercase tracking-wider text-blue-600">Role</p>
+          </div>
+          <button 
+            onclick="logoutUser()" 
+            class="px-2.5 py-1 rounded-lg bg-white hover:bg-red-50 text-red-600 border border-slate-200 text-xs font-bold transition"
+          >
+            Sign Out
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- MAIN WRAPPER -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- ========================================== -->
+    <!-- 0. STRICT ROLE-LOCKED LOGIN SCREEN         -->
+    <!-- ========================================== -->
+    <div id="authView" class="max-w-lg mx-auto my-8">
+      <div class="bg-white rounded-3xl border border-slate-200 shadow-xl p-6 sm:p-8 space-y-6">
+        
+        <div class="text-center space-y-1.5">
+          <span class="inline-block px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200">
+            AKHMUP School Chathrathody
+          </span>
+          <h2 class="text-2xl font-black text-slate-900">Select Your Portal</h2>
+          <p class="text-xs text-slate-500">Choose your category below and enter your assigned User ID.</p>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
+          <button type="button" onclick="selectLoginRole('admin')" id="roleCardAdmin" class="p-4 rounded-2xl border-2 border-slate-200 hover:border-blue-500 bg-slate-50/60 flex flex-col items-center justify-center space-y-2 transition group">
+            <span class="text-2xl">🛡️</span>
+            <span class="text-xs font-black tracking-wider text-slate-800 group-hover:text-blue-700">ADMIN</span>
+          </button>
+
+          <button type="button" onclick="selectLoginRole('student')" id="roleCardStudent" class="p-4 rounded-2xl border-2 border-slate-200 hover:border-blue-500 bg-slate-50/60 flex flex-col items-center justify-center space-y-2 transition group">
+            <span class="text-2xl">🎓</span>
+            <span class="text-xs font-black tracking-wider text-slate-800 group-hover:text-blue-700">STUDENT</span>
+          </button>
+
+          <button type="button" onclick="selectLoginRole('mentor')" id="roleCardMentor" class="p-4 rounded-2xl border-2 border-slate-200 hover:border-blue-500 bg-slate-50/60 flex flex-col items-center justify-center space-y-2 transition group">
+            <span class="text-2xl">👩‍🏫</span>
+            <span class="text-xs font-black tracking-wider text-slate-800 group-hover:text-blue-700">MENTOR</span>
+          </button>
+        </div>
+
+        <form id="roleLoginForm" onsubmit="event.preventDefault(); executeRoleLogin();" class="hidden space-y-4 pt-2 border-t border-slate-100">
+          <div>
+            <label id="selectedRolePromptLabel" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+              Enter User ID
+            </label>
+            <input 
+              type="text" 
+              id="loginUserIdInput" 
+              placeholder="Enter your User ID" 
+              required 
+              autocomplete="off"
+              class="w-full text-base rounded-xl border-slate-300 focus:border-blue-600 focus:ring-blue-600 px-4 py-3 bg-slate-50 border font-mono font-bold text-slate-900"
+            />
+          </div>
+
+          <div id="loginErrorBox" class="hidden p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-bold text-center">
+            User not found
+          </div>
+
+          <button type="submit" id="btnLoginSubmit" class="w-full py-3.5 px-4 rounded-xl font-bold text-sm bg-blue-600 hover:bg-blue-700 text-white shadow-md transition">
+            Sign In →
+          </button>
+        </form>
+
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 1. ADMIN DASHBOARD VIEW                    -->
+    <!-- ========================================== -->
+    <div id="adminView" class="hidden space-y-8">
+      
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center space-x-2">
+            <h2 class="text-xl font-black text-slate-900">Admin Control Center</h2>
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+              Active Batch: <span id="activeBatchBadge">2026-27</span>
+            </span>
+          </div>
+          <p class="text-xs text-slate-500 mt-0.5">Manage batches, upload school Excel register, assign mentors, and schedule daily mock exams.</p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <button onclick="switchAdminTab('enrollment')" id="tabBtnEnrollment" class="px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-blue-600 text-white shadow-sm transition">
+            Batch & Mentors
+          </button>
+          <button onclick="switchAdminTab('generate')" id="tabBtnGenerate" class="px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
+            Question Builder
+          </button>
+          <button onclick="switchAdminTab('bank')" id="tabBtnBank" class="px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
+            Question Bank (<span id="repoCount">0</span>)
+          </button>
+          <button onclick="switchAdminTab('drafts')" id="tabBtnDrafts" class="px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
+            Drafts (<span id="draftCount">0</span>)
+          </button>
+          <button onclick="switchAdminTab('analytics')" id="tabBtnAnalytics" class="px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
+            Analytics
+          </button>
+        </div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- ADMIN TAB 1: BATCH ENROLLMENT, EXCEL & MENTOR MAPPING    -->
+      <!-- ======================================================== -->
+      <div id="adminTabEnrollment" class="space-y-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+            <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2">
+              1. Batch Year Lifecycle
+            </h3>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">Viewing / Active Batch</label>
+              <div class="flex space-x-2">
+                <select id="batchSelector" onchange="changeSelectedBatch(this.value)" class="flex-1 text-sm rounded-xl border-slate-300 bg-slate-50 border px-3 py-2 font-bold">
+                  <option value="2026-27">2026-27 (Current)</option>
+                </select>
+                <button onclick="createNewBatchYear()" class="px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold whitespace-nowrap">
+                  + New Batch
+                </button>
+              </div>
+              <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100">
+                <p class="text-[11px] text-slate-500">
+                  Archived records stay preserved.
+                </p>
+                <button onclick="requestDeleteEntireBatch()" class="text-[11px] font-bold text-red-600 hover:underline">
+                  Delete Selected Batch
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+              <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider">
+                2. School Excel Register
+              </h3>
+              <span class="text-[11px] font-bold text-blue-600"><span id="directoryCountBadge">0</span> in Directory</span>
+            </div>
+            <div class="space-y-2.5">
+              <input 
+                type="file" 
+                id="schoolExcelInput" 
+                accept=".xlsx,.xls,.csv"
+                onchange="handleSchoolExcelUpload(event)"
+                class="block w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+              />
+              <p class="text-[11px] text-slate-500">
+                Upload school Excel (.xlsx / .csv) with columns: <b>Admission No</b>, <b>Name</b>, <b>Class</b>.
+              </p>
+              <button onclick="clearSchoolDirectory()" class="text-[11px] font-bold text-red-600 hover:underline pt-1">
+                Clear Temporary School Directory (Keeps Batch Students)
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+            <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2">
+              3. Add Mentor
+            </h3>
+            <form onsubmit="event.preventDefault(); addNewMentor();" class="space-y-3">
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Mentor Name</label>
+                <div class="flex space-x-2">
+                  <input type="text" id="newMentorNameInput" placeholder="e.g., Minsar" required class="flex-1 text-sm rounded-xl border-slate-300 bg-slate-50 border px-3 py-2 font-semibold"/>
+                  <button type="submit" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold">Add</button>
+                </div>
+                <p class="text-[11px] text-slate-500 mt-1">
+                  Auto User ID: <span class="font-mono font-bold text-indigo-700">name19877</span> (e.g., minsar19877)
+                </p>
+              </div>
+            </form>
+            <div id="mentorsChipList" class="flex flex-wrap gap-1.5 pt-1"></div>
+          </div>
+
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
+            <div>
+              <h3 class="text-base font-bold text-slate-900">Search School Register & Enroll into Batch (<span id="searchTargetBatchLabel">2026-27</span>)</h3>
+              <p class="text-xs text-slate-500">Search by Admission Number or Student Name. Auto User ID format: <span class="font-mono font-bold text-blue-700">(admn_no)s19877</span></p>
+            </div>
+            <button onclick="openManualStudentModal()" class="px-3.5 py-2 rounded-xl border border-slate-300 hover:bg-slate-50 text-xs font-bold text-slate-700">
+              + Manual Add (Without Excel)
+            </button>
+          </div>
+
+          <input 
+            type="text" 
+            id="directorySearchInput" 
+            oninput="searchSchoolDirectory(this.value)"
+            placeholder="Type Admission Number (e.g. 1234) or Student Name..." 
+            class="w-full text-sm rounded-xl border-slate-300 focus:border-blue-600 focus:ring-blue-600 px-4 py-3 bg-slate-50 border font-semibold"
+          />
+
+          <div id="directorySearchResults" class="space-y-2"></div>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
+            <div>
+              <h3 class="text-base font-bold text-slate-900">Batch Registered Students (<span id="batchStudentsCount">0</span>)</h3>
+              <p class="text-xs text-slate-500">Assign or change mentors anytime. Student test history stays intact across mentor changes.</p>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-600">
+              <thead class="bg-slate-50 text-slate-700 uppercase font-bold border-b border-slate-200">
+                <tr>
+                  <th class="p-3">Adm No.</th>
+                  <th class="p-3">Student Name</th>
+                  <th class="p-3">Class</th>
+                  <th class="p-3">Generated User ID</th>
+                  <th class="p-3">Assigned Mentor</th>
+                  <th class="p-3 text-right">Mentor Mapping</th>
+                </tr>
+              </thead>
+              <tbody id="batchStudentsTableBody" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- ADMIN TAB 2: QUESTION BUILDER & DAILY EXAM SCHEDULER     -->
+      <!-- ======================================================== -->
+      <div id="adminTabGenerate" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <div class="lg:col-span-5 space-y-6">
+          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+            
+            <div class="grid grid-cols-2 bg-slate-100 p-1 rounded-xl border border-slate-200">
+              <button type="button" onclick="setInputMode('bulk')" id="modeBtnBulk" class="py-1.5 rounded-lg text-xs font-bold bg-white text-blue-700 shadow-sm transition">
+                Paste Ready Questions
+              </button>
+              <button type="button" onclick="setInputMode('generate')" id="modeBtnGen" class="py-1.5 rounded-lg text-xs font-bold text-slate-600 transition">
+                Generate with AI
+              </button>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Subject</label>
+              <select id="genSubject" class="w-full text-sm rounded-xl border-slate-300 px-3.5 py-2.5 bg-slate-50 border font-medium">
+                <option value="Basic Science">Basic Science (അടിസ്ഥാന ശാസ്ത്രം)</option>
+                <option value="Social Science">Social Science (സാമൂഹ്യശാസ്ത്രം)</option>
+                <option value="Mathematics">Mathematics (ഗണിതം)</option>
+                <option value="Malayalam 1st">Malayalam 1st (മലയാളം ഒന്നാം ഭാഷ)</option>
+                <option value="Malayalam 2nd">Malayalam 2nd (മലയാളം രണ്ടാം ഭാഷ)</option>
+                <option value="English">English</option>
+                <option value="Hindi">Hindi (हिन्दी)</option>
+                <option value="Urdu">Urdu (اردو)</option>
+                <option value="Arabic">Arabic (العربية)</option>
+                <option value="Sanskrit">Sanskrit (संस्कृतम्)</option>
+                <option value="Combined Mock Exam">Combined Mock Exam (All Subjects Mixed)</option>
+              </select>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3">
+              <div class="col-span-2">
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Topic / Exam Title</label>
+                <input 
+                  type="text" 
+                  id="genTopic" 
+                  placeholder="e.g., Angles / Prepositions / ജീവന്റെ തുടിപ്പുകൾ" 
+                  required 
+                  class="w-full text-sm rounded-xl border-slate-300 px-3.5 py-2 bg-white border font-medium"
+                />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Duration (Mins)</label>
+                <input 
+                  type="number" 
+                  id="genDuration" 
+                  value="15" 
+                  min="1" 
+                  max="180" 
+                  required
+                  class="w-full text-sm rounded-xl border-slate-300 px-3 py-2 bg-white border font-bold text-slate-900"
+                />
+              </div>
+            </div>
+
+            <!-- MODE A: BULK PASTE READY QUESTIONS -->
+            <div id="bulkPasteSection" class="space-y-3">
+              <div class="flex items-center justify-between">
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Paste Ready MCQs</label>
+                <button type="button" onclick="fillSampleBulkText()" class="text-[11px] font-bold text-blue-600 hover:underline">Insert Format Example</button>
+              </div>
+              <textarea 
+                id="bulkQuestionsInput" 
+                rows="8" 
+                placeholder="1. ചോദ്യം ഇവിടെ പേസ്റ്റ് ചെയ്യുക?&#10;A) ഓപ്ഷൻ 1&#10;B) ഓപ്ഷൻ 2&#10;C) ഓപ്ഷൻ 3&#10;D) ഓപ്ഷൻ 4&#10;Ans: B&#10;Exp: വിശദീകരണം (Optional)" 
+                class="w-full text-xs rounded-xl border-slate-300 p-3 bg-white border malayalam-font leading-relaxed"
+              ></textarea>
+              <div class="p-3 rounded-xl bg-indigo-50 border border-indigo-200 space-y-2.5">
+                <p class="text-[11px] text-indigo-900 leading-relaxed">Messy layout, answer key at the end, or a PDF? Paste it above and/or upload a PDF, and AI converts it to the format below. There is no limit on the number of questions. Your text is replaced so you can review it, and you can undo.</p>
+                <div class="flex flex-wrap items-center gap-2">
+                  <label class="px-3 py-1.5 rounded-lg bg-white hover:bg-indigo-100 border border-indigo-300 text-indigo-800 text-xs font-bold cursor-pointer transition">
+                    📄 Upload PDF
+                    <input type="file" accept="application/pdf,.pdf" class="hidden" onchange="handlePdfSelected('bulk', this)">
+                  </label>
+                  <span id="bulkPdfChip"></span>
+                </div>
+                <label class="flex items-start gap-2 text-[11px] text-indigo-900 leading-relaxed">
+                  <input type="checkbox" id="bulkVerifyOnline" checked class="mt-0.5 rounded border-indigo-300">
+                  <span><b>Verify questions and answer keys online</b> (Google Search). Slower, but it points out errors, fixes wrong keys and lists every change. Untick for the fastest reformat only.</span>
+                </label>
+                <button type="button" id="btnAiReformat" onclick="reformatPastedWithAI()" class="w-full py-2.5 px-4 rounded-xl font-bold text-xs bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition">✨ Reformat with AI</button>
+                <p id="aiReformatStatus" class="text-[11px] font-semibold text-slate-500"></p>
+              </div>
+              <button type="button" onclick="parseBulkQuestions()" class="w-full py-3 px-4 rounded-xl font-bold text-sm bg-blue-600 hover:bg-blue-700 text-white shadow-md transition">
+                Load Questions into Editor →
+              </button>
+            </div>
+
+            <!-- MODE B: REAL GEMINI AI GENERATION -->
+            <div id="autoGenerateSection" class="hidden space-y-4">
+              
+              <!-- Gemini AI Status, Daily Counter & Official Quota Link -->
+              <div id="aiKeyStatusBox" class="p-3 rounded-xl bg-emerald-50/80 border border-emerald-200 space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-emerald-900" id="aiKeyStatusText">✓ Gemini AI Connected (Cloud Key)</span>
+                  <button type="button" onclick="toggleCustomApiKeyInput()" class="text-[11px] font-bold text-blue-700 hover:underline">
+                    Override Key
+                  </button>
+                </div>
+                <div class="flex items-center justify-between pt-1.5 border-t border-emerald-200/70 text-[11px] text-emerald-800">
+                  <span>Today's AI Runs: <b id="todayAiUsageCount">0</b></span>
+                  <a href="https://aistudio.google.com/rate-limit" target="_blank" class="font-bold text-blue-700 hover:underline">
+                    Check Official Quota ↗
+                  </a>
+                </div>
+              </div>
+
+              <div id="customApiKeyWrapper" class="hidden p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5">
+                <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">Custom Gemini API Key (Optional)</label>
+                <input 
+                  type="password" 
+                  id="geminiApiKeyInput" 
+                  onchange="saveGeminiApiKey(this.value)"
+                  placeholder="Paste AIza... key if overriding cloud key" 
+                  class="w-full text-xs rounded-lg border-slate-300 px-3 py-2 bg-white border font-mono"
+                />
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Number of Questions</label>
+                <input 
+                  type="number" 
+                  id="genCount" 
+                  value="10" 
+                  min="1" 
+                  max="50" 
+                  required
+                  class="w-full text-sm rounded-xl border-slate-300 px-3.5 py-2 bg-white border font-bold text-slate-900"
+                />
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Source Notes / Concepts (Optional)</label>
+                <textarea 
+                  id="genSourceText" 
+                  rows="5" 
+                  placeholder="Paste specific rules, chapter summary, or concepts (e.g., types of angles, rules of in/on/at, textbook paragraphs)..." 
+                  class="w-full text-xs rounded-xl border-slate-300 p-3 bg-white border leading-relaxed"
+                ></textarea>
+              </div>
+
+              <div class="space-y-2">
+                <div class="flex flex-wrap items-center gap-2">
+                  <label class="px-3 py-1.5 rounded-lg bg-white hover:bg-blue-50 border border-slate-300 text-slate-700 text-xs font-bold cursor-pointer transition">
+                    📄 Upload PDF (chapter / notes)
+                    <input type="file" accept="application/pdf,.pdf" class="hidden" onchange="handlePdfSelected('gen', this)">
+                  </label>
+                  <span id="genPdfChip"></span>
+                </div>
+                <label class="flex items-start gap-2 text-[11px] text-slate-700 leading-relaxed">
+                  <input type="checkbox" id="genVerifyOnline" checked class="mt-0.5 rounded border-slate-300">
+                  <span><b>Verify online after generating</b> (Google Search). Checks every question and answer key, fixes errors and lists the changes.</span>
+                </label>
+              </div>
+
+              <button 
+                type="button" 
+                id="btnGenerateQuestions"
+                onclick="triggerAIGeneration()" 
+                class="w-full py-3 px-4 rounded-xl font-bold text-sm bg-blue-600 hover:bg-blue-700 text-white shadow-md transition flex items-center justify-center space-x-2"
+              >
+                <span>✨ Generate Real Questions & Summary</span>
+              </button>
+              <p id="genAiStatus" class="text-[11px] font-semibold text-slate-500"></p>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Right Column: Verification & Inline Editor -->
+        <div class="lg:col-span-7 space-y-6">
+          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div>
+                <h3 class="text-base font-bold text-slate-900">Verification & Question Editor</h3>
+                <p class="text-xs text-slate-500">Verify questions, correct answer keys, and pre-exam study notes.</p>
+              </div>
+              <div class="flex flex-wrap items-center gap-2 justify-end">
+                <button type="button" id="btnVerifyDraft" onclick="verifyCurrentDraft()" class="px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold border border-indigo-200 transition">🔍 Verify online</button>
+                <button type="button" onclick="addBlankDraftQuestion()" class="px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold border border-blue-200 transition">
+                  + Add Blank Question
+                </button>
+              </div>
+            </div>
+
+            <div id="verifyReportBox" class="hidden mt-4"></div>
+
+            <div class="mt-4 p-4 rounded-xl bg-slate-50 border border-slate-200">
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                Student Revision Summary (സംക്ഷിപ്ത പഠനക്കുറിപ്പുകൾ)
+              </label>
+              <textarea 
+                id="editSummaryPoints" 
+                rows="3" 
+                placeholder="Key study bullet points shown to students before starting the quiz..."
+                class="w-full text-sm rounded-lg border-slate-300 p-2.5 bg-white border font-normal malayalam-font"
+              ></textarea>
+            </div>
+
+            <div class="mt-6 space-y-4" id="questionsEditorContainer">
+              <div class="text-center py-12 text-slate-400">
+                <p class="text-sm">Paste ready questions or generate with AI on the left to populate the editor.</p>
+              </div>
+            </div>
+
+            <div id="scheduleActionBar" class="hidden mt-6 pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div class="flex items-center space-x-2 text-xs text-slate-600">
+                <span class="font-bold">Total Verified MCQs:</span>
+                <span id="verifiedQuestionCount" class="font-bold text-blue-600">0</span>
+              </div>
+              <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                <button id="btnUpdateExistingBank" onclick="updateExistingQuestionBank()" class="hidden flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-sm transition">
+                  Update Saved Bank
+                </button>
+                <button id="btnSaveDraft" onclick="saveQuizDraft()" class="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold shadow-sm transition">
+                  Save as Draft
+                </button>
+                <button onclick="saveDraftToQuestionBank()" class="flex-1 sm:flex-none px-4 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-50 transition">
+                  Save as New Topic
+                </button>
+                <button onclick="publishAndScheduleExam()" class="flex-1 sm:flex-none px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md transition">
+                  Approve & Publish Daily Mock
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- ADMIN TAB 3: QUESTION BANK & PUBLISHED EXAMS REPOSITORY  -->
+      <!-- ======================================================== -->
+      <div id="adminTabBank" class="hidden space-y-6">
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+            <div>
+              <h3 class="text-base font-bold text-slate-900">Archived Topics & Question Bank</h3>
+              <p class="text-xs text-slate-500">Edit individual questions inside a topic bank or delete entire banks.</p>
+            </div>
+            <button onclick="buildCombinedMegaMock()" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-sm transition">
+              Build Combined Multi-Subject Mock Exam
+            </button>
+          </div>
+
+          <div id="questionBankGrid" class="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="pb-4 border-b border-slate-100">
+            <h3 class="text-base font-bold text-slate-900">Published Daily Mock Exams</h3>
+            <p class="text-xs text-slate-500">One exam is live at a time. When a new exam goes live, the old one stays visible only to students who have not attempted it yet (as a due exam). Results stay available to mentors and admin.</p>
+          </div>
+          <div id="publishedExamsAdminGrid" class="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- ADMIN TAB 4: QUIZ DRAFTS                                 -->
+      <!-- ======================================================== -->
+      <div id="adminTabDrafts" class="hidden space-y-6">
+        <div id="draftsSetupNotice" class="hidden p-4 rounded-2xl bg-amber-50 border border-amber-300 text-xs text-amber-900 font-semibold leading-relaxed">
+          Drafts need a one-time database setup: open Supabase &gt; SQL Editor and run the contents of <span class="font-mono">supabase_setup.sql</span>. Until then, drafts cannot be saved.
+        </div>
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="pb-4 border-b border-slate-100">
+            <h3 class="text-base font-bold text-slate-900">Quiz Drafts</h3>
+            <p class="text-xs text-slate-500">Prepare as many quizzes as you like in advance. Publish one when it is needed. Publishing replaces the live exam, and the old one is archived.</p>
+          </div>
+          <div id="draftsGrid" class="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- ADMIN TAB 5: ANALYTICS                                   -->
+      <!-- ======================================================== -->
+      <div id="adminTabAnalytics" class="hidden space-y-6">
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-end gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Batch</label>
+            <select id="anBatchSelect" onchange="renderAdminAnalytics()" class="text-sm rounded-xl border-slate-300 bg-slate-50 border px-3 py-2 font-bold"></select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Mentor</label>
+            <select id="anMentorSelect" onchange="renderAdminAnalytics()" class="text-sm rounded-xl border-slate-300 bg-slate-50 border px-3 py-2 font-bold"></select>
+          </div>
+          <p class="text-[11px] text-slate-500 max-w-md">Numbers use each student's latest attempt per exam. Exam history includes archived exams.</p>
+        </div>
+
+        <div id="anSummaryCards" class="grid grid-cols-2 lg:grid-cols-4 gap-4"></div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider mb-3">Average accuracy by exam</h3>
+            <div class="relative h-64"><canvas id="anTrendCanvas"></canvas></div>
+          </div>
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider mb-3">Subject-wise trend</h3>
+            <div class="relative h-64"><canvas id="anSubjectCanvas"></canvas></div>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider mb-3">Subject summary</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-600">
+              <thead class="bg-slate-50 text-slate-700 uppercase font-bold border-b border-slate-200">
+                <tr><th class="p-2.5">Subject</th><th class="p-2.5">Exams</th><th class="p-2.5">Attempts</th><th class="p-2.5">Avg accuracy</th><th class="p-2.5">Best exam</th><th class="p-2.5">Lowest exam</th></tr>
+              </thead>
+              <tbody id="anSubjectTable" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider mb-3">Full exam history</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-600">
+              <thead class="bg-slate-50 text-slate-700 uppercase font-bold border-b border-slate-200">
+                <tr><th class="p-2.5">Date</th><th class="p-2.5">Exam</th><th class="p-2.5">Subject</th><th class="p-2.5">Status</th><th class="p-2.5">MCQs</th><th class="p-2.5">Attended</th><th class="p-2.5">Avg</th><th class="p-2.5">High / Low</th><th class="p-2.5 text-right">Details</th></tr>
+              </thead>
+              <tbody id="anExamTable" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+          <div id="anExamDetail"></div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider">Student performance</h3>
+            <select id="anStudentSelect" onchange="renderStudentPerformance(this.value, 'anStu')" class="text-sm rounded-xl border-slate-300 bg-slate-50 border px-3 py-2 font-semibold sm:min-w-[260px]"></select>
+          </div>
+          <div id="anStuPanel"></div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider mb-3">All students overview</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-600">
+              <thead class="bg-slate-50 text-slate-700 uppercase font-bold border-b border-slate-200">
+                <tr><th class="p-2.5">Adm</th><th class="p-2.5">Student</th><th class="p-2.5">Class</th><th class="p-2.5">Mentor</th><th class="p-2.5">Attempts</th><th class="p-2.5">Avg</th><th class="p-2.5">Latest</th><th class="p-2.5">Trend</th><th class="p-2.5 text-right"></th></tr>
+              </thead>
+              <tbody id="anStudentsTable" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 2. STUDENT PORTAL VIEW                     -->
+    <!-- ========================================== -->
+    <div id="studentView" class="hidden space-y-6">
+
+      <div class="bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 rounded-3xl p-6 sm:p-8 text-white shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+          <div class="inline-flex items-center space-x-2 bg-blue-700/60 border border-blue-400/30 px-3 py-1 rounded-full text-xs font-bold mb-3">
+            <span id="bannerStudentAdm">Adm No: --</span>
+            <span>•</span>
+            <span id="bannerStudentBatch">Batch 2026-27</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-black tracking-tight" id="bannerStudentWelcome">Welcome, Student!</h2>
+          <p class="text-blue-100 text-xs sm:text-sm mt-1 max-w-xl">
+            Read today's study notes, attend timed CMKids scholarship mock tests, and review detailed explanations.
+          </p>
+        </div>
+
+        <div class="bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl flex items-center space-x-4">
+          <div class="h-12 w-12 rounded-xl bg-amber-400 text-blue-950 flex items-center justify-center font-black text-xl">🏆</div>
+          <div>
+            <p class="text-[11px] uppercase tracking-wider text-blue-200 font-bold">Current Exam</p>
+            <p class="text-lg font-black text-white" id="studentAvgScoreDisplay">0 Tests Completed</p>
+            <p class="text-[11px] text-blue-200" id="studentAssignedMentorDisplay">Mentor: Unassigned</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- State A: Available Mock Tests List -->
+      <div id="studentAvailableTestsCard" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <div id="studentMyResults" class="hidden mb-6 pb-6 border-b border-slate-200"></div>
+        <h3 class="text-base font-bold text-slate-900 pb-3 border-b border-slate-100 flex items-center justify-between">
+          <span>Scheduled Daily Mock Exams</span>
+          <span class="text-xs font-semibold text-slate-500">Select an exam to begin</span>
+        </h3>
+        <div id="studentExamsList" class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+      </div>
+
+      <!-- State B: Pre-Quiz Study Summary Card -->
+      <div id="studentPreQuizSummaryCard" class="hidden bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-lg space-y-6">
+        <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+          <div>
+            <span id="preQuizSubjectBadge" class="text-xs font-bold px-3 py-1 rounded-full bg-blue-100 text-blue-800">Subject</span>
+            <h3 id="preQuizTopicTitle" class="text-xl font-black text-slate-900 mt-2">Topic Title</h3>
+          </div>
+          <button onclick="returnToStudentList()" class="text-xs font-semibold text-slate-400 hover:text-slate-600">← Back to exams</button>
+        </div>
+
+        <div class="bg-amber-50/80 border border-amber-200 rounded-2xl p-5">
+          <h4 class="text-xs font-bold text-amber-900 uppercase tracking-wider mb-3">
+            പരീക്ഷയ്ക്ക് മുൻപുള്ള സംക്ഷിപ്ത പഠനക്കുറിപ്പുകൾ (Key Revision Summary)
+          </h4>
+          <ul id="preQuizSummaryList" class="space-y-2 text-sm text-slate-800 leading-relaxed"></ul>
+        </div>
+
+        <div class="flex items-center justify-end pt-4 border-t border-slate-100">
+          <button onclick="launchActiveQuiz()" class="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-md transition">
+            Start Quiz →
+          </button>
+        </div>
+      </div>
+
+      <!-- State C: Timed Quiz Player Interface -->
+      <div id="studentQuizActiveCard" class="hidden space-y-6">
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between sticky top-24 z-30">
+          <div>
+            <h4 id="quizActiveTitle" class="text-sm font-bold text-slate-900">Mock Test</h4>
+            <p class="text-xs text-slate-500">Question <span id="currentQNum">1</span> of <span id="totalQNum">10</span></p>
+          </div>
+          
+          <div class="flex items-center space-x-3">
+            <div class="flex items-center space-x-2 bg-red-50 text-red-700 px-3 py-1.5 rounded-xl border border-red-200 font-mono font-bold text-sm">
+              <span id="quizTimer">15:00</span>
+            </div>
+            <button onclick="submitQuizPrematurely()" class="px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition">
+              Submit Exam
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div class="lg:col-span-8 bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
+            <div class="flex items-start justify-between gap-4">
+              <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-700">Q.<span id="displayQuestionIndex">1</span></span>
+              <button onclick="toggleMarkForReview()" id="btnMarkReview" class="text-xs font-semibold text-amber-600 hover:text-amber-700 border border-amber-200 px-2.5 py-1 rounded-lg">
+                Mark for Review
+              </button>
+            </div>
+
+            <div id="quizQuestionStem" class="text-base sm:text-lg font-bold text-slate-900 leading-relaxed"></div>
+            <div id="quizOptionsContainer" class="space-y-3 pt-2"></div>
+
+            <div class="flex items-center justify-between pt-6 border-t border-slate-100">
+              <button onclick="navigateQuestion(-1)" id="btnPrevQ" class="px-4 py-2 rounded-xl text-xs font-bold border border-slate-200 text-slate-700 hover:bg-slate-50 transition">← Previous</button>
+              <button onclick="navigateQuestion(1)" id="btnNextQ" class="px-5 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition">Next Question →</button>
+            </div>
+          </div>
+
+          <div class="lg:col-span-4 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-600">Question Palette</h4>
+            <div id="quizPaletteGrid" class="grid grid-cols-5 gap-2"></div>
+            <div class="pt-4 border-t border-slate-100 text-[11px] space-y-1.5 text-slate-500">
+              <div class="flex items-center space-x-2"><span class="w-3 h-3 rounded-full bg-emerald-500"></span><span>Answered</span></div>
+              <div class="flex items-center space-x-2"><span class="w-3 h-3 rounded-full bg-amber-400"></span><span>Marked for Review</span></div>
+              <div class="flex items-center space-x-2"><span class="w-3 h-3 rounded-full bg-slate-200"></span><span>Not Visited</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- State D: Exam Review & Scorecard -->
+      <div id="studentQuizResultsCard" class="hidden space-y-6">
+        <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm text-center space-y-4">
+          <div class="h-16 w-16 mx-auto rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-2xl font-black">✓</div>
+          <h3 id="resHeading" class="text-2xl font-black text-slate-900">Exam Completed!</h3>
+          <p id="resSubtitle" class="text-xs text-slate-500">Your score and answer sheet have been saved permanently to your profile.</p>
+
+          <div class="max-w-md mx-auto grid grid-cols-3 gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-200">
+            <div><p class="text-[10px] uppercase font-bold text-slate-400">Score</p><p class="text-xl font-black text-slate-900" id="resScore">0 / 0</p></div>
+            <div><p class="text-[10px] uppercase font-bold text-slate-400">Accuracy</p><p class="text-xl font-black text-emerald-600" id="resAccuracy">0%</p></div>
+            <div><p class="text-[10px] uppercase font-bold text-slate-400">Status</p><p class="text-xl font-black text-blue-600" id="resStatus">Completed</p></div>
+          </div>
+
+          <button onclick="returnToStudentList()" class="px-5 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 transition">Back to Dashboard</button>
+        </div>
+
+        <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+          <h4 class="text-base font-bold text-slate-900">Detailed Question Rationales (ഉത്തര വിശകലനം)</h4>
+          <div id="resultsDetailedQuestionsContainer" class="space-y-4"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 3. MENTOR PORTAL VIEW                      -->
+    <!-- ========================================== -->
+    <div id="mentorView" class="hidden space-y-8">
+      
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 gap-4">
+        <div>
+          <h2 class="text-xl font-bold text-slate-900">Mentor Performance & Attendance Portal</h2>
+          <p class="text-sm text-slate-500">Check exam attendance, marks, and complete answer sheets for your assigned mentees.</p>
+        </div>
+        <div class="flex items-center space-x-2">
+          <label class="text-xs font-bold text-slate-600">Select Exam:</label>
+          <select id="mentorExamFilter" onchange="renderMentorDashboard()" class="text-xs font-bold rounded-xl border-slate-300 bg-white border px-3 py-2">
+            <option value="all">All Exams</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Assigned Mentees</p>
+          <p class="text-2xl font-black text-slate-900 mt-1" id="mentorTotalMenteesCount">0</p>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Attended Selected Exam</p>
+          <p class="text-2xl font-black text-emerald-600 mt-1" id="mentorAttendedCount">0 / 0</p>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Mentee Batch Average</p>
+          <p class="text-2xl font-black text-blue-600 mt-1" id="mentorAvgAccuracy">--</p>
+        </div>
+      </div>
+
+      <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <h3 class="text-base font-bold text-slate-900">Mentee Exam Status & Answer Inspection</h3>
+        
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-600">
+            <thead class="bg-slate-50 text-slate-700 uppercase font-bold border-b border-slate-200">
+              <tr>
+                <th class="p-3">Adm No.</th>
+                <th class="p-3">Student Name</th>
+                <th class="p-3">Exam Title</th>
+                <th class="p-3">Attendance Status</th>
+                <th class="p-3">Marks & Accuracy</th>
+                <th class="p-3 text-right">Answer Sheet</th>
+              </tr>
+            </thead>
+            <tbody id="mentorMenteesTableBody" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h3 class="text-base font-bold text-slate-900">Student Performance History</h3>
+            <p class="text-xs text-slate-500">Pick a mentee to see their scores, subject strengths and trend across all exams.</p>
+          </div>
+          <select id="mnStudentSelect" onchange="renderStudentPerformance(this.value, 'mnStu')" class="text-sm rounded-xl border-slate-300 bg-slate-50 border px-3 py-2 font-semibold sm:min-w-[260px]"></select>
+        </div>
+        <div id="mnStuPanel"></div>
+      </div>
+
+
+    </div>
+
+  </main>
+
+  <!-- ========================================== -->
+  <!-- MODAL: MENTOR VIEW STUDENT ANSWERS         -->
+  <!-- ========================================== -->
+  <div id="answerSheetModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-3xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+        <div>
+          <h3 id="modalAnswerStudentName" class="text-base font-black text-slate-900">Student Answer Sheet</h3>
+          <p id="modalAnswerExamMeta" class="text-xs text-slate-500">Exam Title • Score</p>
+        </div>
+        <button onclick="closeAnswerModal()" class="px-3 py-1.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-xs font-bold text-slate-800">
+          Close ✕
+        </button>
+      </div>
+      <div id="modalAnswerBody" class="p-6 overflow-y-auto space-y-4"></div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: ASSIGN / CHANGE MENTOR              -->
+  <!-- ========================================== -->
+  <div id="assignMentorModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+      <h3 class="text-base font-black text-slate-900">Assign Mentor</h3>
+      <p id="assignMentorStudentLabel" class="text-xs text-slate-600">Select mentor for student:</p>
+      <select id="assignMentorSelect" class="w-full text-sm rounded-xl border-slate-300 bg-slate-50 border px-3.5 py-2.5 font-semibold"></select>
+      <div class="flex justify-end space-x-2 pt-2">
+        <button onclick="document.getElementById('assignMentorModal').classList.add('hidden')" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600">Cancel</button>
+        <button onclick="confirmMentorAssignment()" class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold">Save Assignment</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: MANUAL ADD STUDENT (WITHOUT EXCEL)  -->
+  <!-- ========================================== -->
+  <div id="manualStudentModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+      <h3 class="text-base font-black text-slate-900">Enroll Student Manually</h3>
+      <form onsubmit="event.preventDefault(); submitManualStudent();" class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Admission Number</label>
+          <input type="text" id="manAdmNo" required placeholder="e.g., 1234" class="w-full text-sm rounded-xl border-slate-300 bg-slate-50 border px-3 py-2 font-mono font-bold"/>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Student Full Name</label>
+          <input type="text" id="manFullName" required placeholder="e.g., Fathima Hiba" class="w-full text-sm rounded-xl border-slate-300 bg-slate-50 border px-3 py-2 font-semibold"/>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Class / Division</label>
+          <input type="text" id="manClassDiv" placeholder="e.g., 7 A" class="w-full text-sm rounded-xl border-slate-300 bg-slate-50 border px-3 py-2"/>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Assign Mentor (Optional)</label>
+          <select id="manMentorSelect" class="w-full text-sm rounded-xl border-slate-300 bg-slate-50 border px-3 py-2"></select>
+        </div>
+        <div class="flex justify-end space-x-2 pt-2">
+          <button type="button" onclick="document.getElementById('manualStudentModal').classList.add('hidden')" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600">Cancel</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold">Enroll to Batch</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: SPECIAL ADMIN DELETION PASSWORD     -->
+  <!-- ========================================== -->
+  <div id="deletePasswordModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-red-100">
+      <div class="flex items-center space-x-2.5 text-red-600">
+        <span class="text-xl">🔒</span>
+        <h3 class="text-base font-black text-slate-900">Special Admin Verification</h3>
+      </div>
+      <p id="deleteTargetSummaryText" class="text-xs text-slate-600 leading-relaxed">
+        Enter the Special Admin Deletion Password to permanently remove this record.
+      </p>
+      <div class="space-y-1.5">
+        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Master Deletion Password</label>
+        <input 
+          type="password" 
+          id="specialDeletePasswordInput" 
+          placeholder="Enter special admin password" 
+          class="w-full text-sm rounded-xl border-slate-300 bg-slate-50 border px-3.5 py-2.5 font-mono font-bold text-slate-900 focus:border-red-500 focus:ring-red-500"
+        />
+        <p class="text-[11px] font-semibold text-slate-400">Reset password locked in Supabase</p>
+      </div>
+      <div id="deletePasswordError" class="hidden p-2.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-bold text-center">
+        Incorrect Special Admin Password
+      </div>
+      <div class="flex justify-end space-x-2 pt-2">
+        <button type="button" onclick="closeDeletePasswordModal()" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50">
+          Cancel
+        </button>
+        <button type="button" onclick="confirmProtectedDeletion()" class="px-5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-sm">
+          Verify & Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="bg-white border-t border-slate-200 mt-auto py-4 text-center text-xs text-slate-400">
+    <p>CMKids Scholarship Exam Preparation System • AKHMUP School Chathrathody (Estd. 1982)</p>
+  </footer>
+
+  <!-- JAVASCRIPT APPLICATION LOGIC -->
+
+  <!-- App scripts (order matters: they share one global scope) -->
+  <script src="js/config.js?v=20261116"></script>
+  <script src="js/utils.js?v=20261116"></script>
+  <script src="js/data.js?v=20261116"></script>
+  <script src="js/admin.js?v=20261116"></script>
+  <script src="js/builder.js?v=20261116"></script>
+  <script src="js/exams.js?v=20261116"></script>
+  <script src="js/ai.js?v=20261116"></script>
+  <script src="js/student.js?v=20261116c"></script>
+  <script src="js/mentor.js?v=20261116"></script>
+  <script src="js/analytics.js?v=20261116"></script>
+</body>
+</html>
