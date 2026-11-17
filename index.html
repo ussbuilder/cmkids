@@ -22,7 +22,13 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700;800;900&family=Manjari:wght@400;700&family=Noto+Nastaliq+Urdu:wght@400;700&family=Noto+Sans+Devanagari:wght@400;600&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="styles.css?v=20261116">
+  <script>
+    (function () {
+      var bust = new URLSearchParams(window.location.search).get("v") || Date.now();
+      window.__CMKIDS_BUST = bust;
+      document.write('<link rel="stylesheet" href="styles.css?v=' + encodeURIComponent(bust) + '">');
+    })();
+  </script>
 </head>
 <body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col antialiased">
 
@@ -1127,17 +1133,27 @@
 
   <!-- JAVASCRIPT APPLICATION LOGIC -->
 
-  <!-- App scripts (order matters: they share one global scope) -->
-  <script src="js/config.js?v=20261116"></script>
-  <script src="js/utils.js?v=20261116"></script>
-  <script src="js/data.js?v=20261117b"></script>
-  <script src="js/auth.js?v=20261117b"></script>
-  <script src="js/admin.js?v=20261117b"></script>
-  <script src="js/builder.js?v=20261116"></script>
-  <script src="js/exams.js?v=20261116"></script>
-  <script src="js/ai.js?v=20261116"></script>
-  <script src="js/student.js?v=20261117a"></script>
-  <script src="js/mentor.js?v=20261117c"></script>
-  <script src="js/analytics.js?v=20261116"></script>
+  <!-- Sequential dynamic loader: always fetches fresh JS without manual hard refresh -->
+  <script>
+    (function () {
+      var bust = window.__CMKIDS_BUST || Date.now();
+      var files = [
+        "js/config.js",
+        "js/utils.js",
+        "js/data.js",
+        "js/auth.js",
+        "js/admin.js",
+        "js/builder.js",
+        "js/exams.js",
+        "js/ai.js",
+        "js/student.js",
+        "js/mentor.js",
+        "js/analytics.js"
+      ];
+      files.forEach(function (src) {
+        document.write('<script src="' + src + '?v=' + encodeURIComponent(bust) + '"><\/script>');
+      });
+    })();
+  </script>
 </body>
 </html>
