@@ -179,19 +179,21 @@
       });
     }
 
-    // Results kept on the student's home page: exams attended since the current live exam was published
-    // (so results of older rounds disappear automatically when a new exam goes live).
+    // The student's home page keeps only their MOST RECENT result (no history list), and only while
+    // it belongs to the current round: the live exam, or an exam attended since the live exam was published.
+    // When a new exam goes live, the previous result disappears automatically.
     function studentResultsForHome() {
       if (!currentUser) return [];
-      const latest = latestPerStudentExam(allAttempts.filter(a => a.student_id === currentUser.id));
+      const latest = latestPerStudentExam(allAttempts.filter(a => a.student_id === currentUser.id));  // newest first
+      const a = latest[0];
+      if (!a) return [];
+      const ex = examById(a.exam_id);
+      if (!ex) return [];
       const live = allExams.find(e => e.isActive);
-      const since = live && live.createdAt ? new Date(live.createdAt).getTime() : null;
-      return latest.filter(a => {
-        const ex = examById(a.exam_id);
-        if (!ex) return false;
-        if (live) return ex.id === live.id || (since !== null && new Date(a.completed_at).getTime() >= since);
-        return a === latest[0];
-      });
+      if (!live) return [a];
+      const since = live.createdAt ? new Date(live.createdAt).getTime() : null;
+      const inCurrentRound = ex.id === live.id || (since !== null && new Date(a.completed_at).getTime() >= since);
+      return inCurrentRound ? [a] : [];
     }
 
     function renderStudentMyResults() {
@@ -202,7 +204,7 @@
       box.classList.remove("hidden");
       box.innerHTML = `
         <h3 class="text-base font-bold text-slate-900 pb-3 flex items-center justify-between">
-          <span>Your Results</span>
+          <span>Your Latest Result</span>
           <span class="text-xs font-semibold text-slate-500">Tap to review your answers</span>
         </h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
