@@ -156,6 +156,12 @@
 
       const cleanPrefix = rawName.toLowerCase().replace(/[^a-z0-9]/g, "");
       const generatedUserId = `${cleanPrefix}19877`;
+      const pwInput = document.getElementById("newMentorPasswordInput");
+      const mentorPw = pwInput ? pwInput.value : "";
+      if (mentorPw.length < MIN_PASSWORD_LENGTH) {
+        alert(`Set a starting password of at least ${MIN_PASSWORD_LENGTH} characters for this mentor.`);
+        return;
+      }
 
       if (allProfiles.some(p => p.login_id === generatedUserId)) {
         alert(`Mentor with User ID "${generatedUserId}" already exists.`);
@@ -182,9 +188,16 @@
         allProfiles.unshift(newMentor);
       }
 
+      let loginNote = "";
+      if (supabaseClient) {
+        const out = await provisionLogins([allProfiles[0]], () => mentorPw);
+        if (out.failed.length) loginNote = "\n\nWARNING: the login could not be created (" + out.failed[0].error + "). Use the 'Create missing logins' button later.";
+        await syncAllFromCloud();
+      }
       document.getElementById("newMentorNameInput").value = "";
+      if (pwInput) pwInput.value = "";
       renderMentorsChips();
-      alert(`Mentor "${rawName}" added!\nLogin User ID: ${generatedUserId}`);
+      alert(`Mentor "${rawName}" added!\nLogin User ID: ${generatedUserId}\nPassword: the one you typed (they can change it after signing in).${loginNote}`);
     }
 
     function renderMentorsChips() {
@@ -198,6 +211,7 @@
         chip.innerHTML = `
           <span>${escapeHtml(m.full_name)}</span>
           <span class="font-mono text-[10px] bg-white px-1.5 py-0.5 rounded border border-indigo-200 text-indigo-700">${escapeHtml(m.login_id)}</span>
+          <button type="button" onclick="setMentorPassword('${m.id}')" title="Set password" class="ml-1 text-indigo-600 hover:text-indigo-800">🔑</button>
           <button type="button" onclick="requestDeleteMentor('${m.id}')" title="Delete Mentor" class="ml-1 text-red-500 hover:text-red-700 font-black">✕</button>
         `;
         container.appendChild(chip);
@@ -323,8 +337,14 @@
         allProfiles.unshift(newStudent);
       }
 
+      let loginNote = "";
+      if (supabaseClient) {
+        const out = await provisionLogins([allProfiles[0]], p => defaultStudentPassword(p.admission_no));
+        if (out.failed.length) loginNote = "\n\nWARNING: the login could not be created (" + out.failed[0].error + "). Use the 'Create missing logins' button later.";
+        await syncAllFromCloud();
+      }
       renderBatchStudentsTable();
-      alert(`Enrolled ${fullName} into Batch ${selectedBatchFilter}!\nStudent Login ID: ${generatedUserId}`);
+      alert(`Enrolled ${fullName} into Batch ${selectedBatchFilter}!\nStudent Login ID: ${generatedUserId}\nFirst password: ${defaultStudentPassword(admNo)}${loginNote}`);
     }
 
     function renderBatchStudentsTable() {
@@ -359,6 +379,9 @@
           <td class="p-3 text-right space-x-1.5 whitespace-nowrap">
             <button onclick="openAssignMentorModal('${stu.id}')" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-blue-50 text-blue-700 font-bold text-xs border border-slate-200 transition">
               ${mentor ? "Change Mentor" : "Assign Mentor"}
+            </button>
+            <button onclick="resetStudentPassword('${stu.id}')" class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-amber-50 text-amber-700 font-bold text-xs border border-slate-200 transition" title="Reset to the default password">
+              Reset Password
             </button>
             <button onclick="requestDeleteStudent('${stu.id}')" class="px-2.5 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs border border-red-200 transition">
               Delete
@@ -447,6 +470,7 @@
         `Permanently delete student "${escapeHtml(stu.full_name)}" (Adm: ${escapeHtml(stu.admission_no)}, Batch: ${stu.batch_year || "2026-27"}) and all their exam records?`,
         async () => {
           if (supabaseClient) {
+            await deleteLogins([studentId]);
             await supabaseClient.from("exam_attempts").delete().eq("student_id", studentId);
             await supabaseClient.from("profiles").delete().eq("id", studentId);
           }
@@ -465,6 +489,7 @@
         `Permanently delete mentor "${escapeHtml(mentor.full_name)}" (${mentor.login_id})? Assigned students will be kept and marked Unassigned.`,
         async () => {
           if (supabaseClient) {
+            await deleteLogins([mentorId]);
             await supabaseClient.from("profiles").update({ mentor_id: null }).eq("mentor_id", mentorId);
             await supabaseClient.from("profiles").delete().eq("id", mentorId);
           }
@@ -490,6 +515,7 @@
         async () => {
           const ids = batchStudents.map(s => s.id);
           if (supabaseClient) {
+            await deleteLogins(ids);
             await supabaseClient.from("exam_attempts").delete().in("student_id", ids);
             await supabaseClient.from("profiles").delete().in("id", ids);
           }

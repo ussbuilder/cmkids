@@ -1,24 +1,6 @@
 // data.js: Startup, cloud sync, login and logout
 
-    // ============================================================
-    // 3. INITIAL LOAD & SESSION RESTORATION
-    // ============================================================
-    window.addEventListener("DOMContentLoaded", async () => {
-      await syncAllFromCloud();
-      
-      const savedSession = localStorage.getItem("cmkids_active_user");
-      if (savedSession) {
-        try {
-          const parsed = JSON.parse(savedSession);
-          const validUser = allProfiles.find(p => p.login_id === parsed.login_id && p.role === parsed.role);
-          if (validUser) {
-            completeLogin(validUser);
-            return;
-          }
-        } catch (e) {}
-      }
-      showAuthView();
-    });
+    // Startup and session restore now live in auth.js (sign-in is required before any data loads)
 
     function setCloudStatus(ok) {
       const badge = document.getElementById("cloudStatusBadge");
@@ -57,17 +39,6 @@
         setCloudStatus(!profilesError);
         if (profiles) {
           allProfiles = profiles;
-        }
-
-        if (!allProfiles.some(p => p.login_id === "CM19877")) {
-          allProfiles.push({
-            id: "admin-master",
-            full_name: "Exam Cell Admin",
-            role: "admin",
-            login_id: "CM19877",
-            admission_no: "ADMIN_MASTER",
-            batch_year: "ALL"
-          });
         }
 
         // 3. School Directory
@@ -136,6 +107,7 @@
       selectedLoginRole = role;
       document.getElementById("loginErrorBox").classList.add("hidden");
       document.getElementById("loginUserIdInput").value = "";
+      document.getElementById("loginPasswordInput").value = "";
 
       ["Admin", "Student", "Mentor"].forEach(r => {
         const el = document.getElementById("roleCard" + r);
@@ -155,41 +127,13 @@
       document.getElementById("loginUserIdInput").focus();
     }
 
-    async function executeRoleLogin() {
-      if (!selectedLoginRole) return;
-      const enteredId = document.getElementById("loginUserIdInput").value.trim();
-      const errorBox = document.getElementById("loginErrorBox");
-      errorBox.classList.add("hidden");
-
-      const btn = document.getElementById("btnLoginSubmit");
-      btn.innerText = "Verifying...";
-      btn.disabled = true;
-
-      await syncAllFromCloud();
-
-      const matchedUser = allProfiles.find(
-        p => p.login_id && p.login_id.toLowerCase() === enteredId.toLowerCase() && p.role === selectedLoginRole
-      );
-
-      btn.innerText = "Sign In →";
-      btn.disabled = false;
-
-      if (!matchedUser) {
-        errorBox.innerText = "User not found";
-        errorBox.classList.remove("hidden");
-        return;
-      }
-
-      localStorage.setItem("cmkids_active_user", JSON.stringify(matchedUser));
-      completeLogin(matchedUser);
-    }
-
     function completeLogin(user) {
       currentUser = user;
       document.getElementById("authView").classList.add("hidden");
       document.getElementById("userSessionBar").classList.remove("hidden");
       document.getElementById("headerUserName").innerText = user.full_name;
       document.getElementById("headerUserRole").innerText = user.role.toUpperCase();
+      showPasswordNudge();
 
       if (user.role === "admin") {
         document.getElementById("adminView").classList.remove("hidden");
@@ -208,16 +152,4 @@
         document.getElementById("mentorView").classList.remove("hidden");
         setupMentorDashboard();
       }
-    }
-
-    function logoutUser() {
-      clearInterval(timerInterval);
-      currentUser = null;
-      selectedLoginRole = null;
-      localStorage.removeItem("cmkids_active_user");
-      document.getElementById("roleLoginForm").classList.add("hidden");
-      ["Admin", "Student", "Mentor"].forEach(r => {
-        document.getElementById("roleCard" + r).className = "p-4 rounded-2xl border-2 border-slate-200 hover:border-blue-500 bg-slate-50/60 flex flex-col items-center justify-center space-y-2 transition group";
-      });
-      showAuthView();
     }
