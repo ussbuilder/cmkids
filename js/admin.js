@@ -502,27 +502,55 @@
     }
 
     function requestDeleteEntireBatch() {
+      const targetBatch = selectedBatchFilter;
       const batchStudents = allProfiles.filter(
-        p => p.role === "student" && (p.batch_year || "2026-27") === selectedBatchFilter
+        p => p.role === "student" && (p.batch_year || "2026-27") === targetBatch
       );
-      if (batchStudents.length === 0) {
-        alert(`Batch "${selectedBatchFilter}" has no enrolled students to delete.`);
+
+      if (batchStudents.length === 0 && targetBatch === "2026-27") {
+        alert(`Default batch "2026-27" is already empty and cannot be removed.`);
         return;
       }
 
+      const summaryMsg = batchStudents.length > 0
+        ? `Permanently delete ALL ${batchStudents.length} students, exam attempts, and remove Batch "${targetBatch}"?`
+        : `Batch "${targetBatch}" has 0 students. Remove Batch "${targetBatch}" from the batch list?`;
+
       openDeletePasswordModal(
-        `Permanently delete ALL ${batchStudents.length} students and exam attempts in Batch "${selectedBatchFilter}"?`,
+        summaryMsg,
         async () => {
           const ids = batchStudents.map(s => s.id);
           if (supabaseClient) {
-            await deleteLogins(ids);
-            await supabaseClient.from("exam_attempts").delete().in("student_id", ids);
-            await supabaseClient.from("profiles").delete().in("id", ids);
+            if (ids.length > 0) {
+              await deleteLogins(ids);
+              await supabaseClient.from("exam_attempts").delete().in("student_id", ids);
+              await supabaseClient.from("profiles").delete().in("id", ids);
+            }
+
+            if (activeBatchYear === targetBatch) {
+              const remainingBatches = Array.from(new Set(
+                allProfiles
+                  .filter(p => p.role === "student" && p.batch_year && p.batch_year !== targetBatch)
+                  .map(p => p.batch_year)
+                  .concat(["2026-27"])
+              )).sort().reverse();
+              const fallbackBatch = remainingBatches[0] || "2026-27";
+
+              await supabaseClient.from("app_settings").upsert([{ key: "active_batch", value: fallbackBatch }]);
+              activeBatchYear = fallbackBatch;
+              selectedBatchFilter = fallbackBatch;
+            } else {
+              selectedBatchFilter = activeBatchYear;
+            }
+          } else {
+            if (activeBatchYear === targetBatch) activeBatchYear = "2026-27";
+            selectedBatchFilter = activeBatchYear;
           }
+
           await syncAllFromCloud();
           refreshBatchDropdowns();
           renderBatchStudentsTable();
-          alert(`All student records for Batch "${selectedBatchFilter}" have been deleted.`);
+          alert(`Batch "${targetBatch}" has been removed.`);
         }
       );
     }
