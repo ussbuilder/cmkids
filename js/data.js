@@ -32,6 +32,18 @@
           if (delRow && delRow.value) {
             cloudDeletePassword = delRow.value.trim();
           }
+          const verRow = settingsRows.find(s => s.key === "app_version");
+          if (verRow && verRow.value && typeof APP_VERSION !== "undefined" && verRow.value.trim() !== APP_VERSION) {
+            const quizCard = document.getElementById("studentQuizActiveCard");
+            const isTakingExam = quizCard && !quizCard.classList.contains("hidden") && !quizFinished;
+            const reloadGuardKey = "cmkids_reloaded_" + verRow.value.trim();
+            if (!isTakingExam && !sessionStorage.getItem(reloadGuardKey)) {
+              sessionStorage.setItem(reloadGuardKey, "1");
+              const cleanUrl = window.location.href.split("#")[0].split("?")[0];
+              window.location.replace(cleanUrl + "?v=" + encodeURIComponent(verRow.value.trim()));
+              return;
+            }
+          }
         }
 
         // 2. Profiles (Admins, Mentors, Students)

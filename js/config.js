@@ -5,6 +5,7 @@
     // ============================================================
     const SUPABASE_URL = "https://wrenqngsligwimtzbtpd.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_-whw9evphRGWi5h0gRjSSw_jqWUpCXb";
+    const APP_VERSION = "2026.11.17.1";
     
     let supabaseClient = null;
     if (window.supabase) {
