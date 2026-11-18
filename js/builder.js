@@ -51,6 +51,18 @@
       }
     }
 
+    function updateBulkDetectedCount() {
+      const ta = document.getElementById("bulkQuestionsInput");
+      const badge = document.getElementById("bulkDetectedCountBadge");
+      if (!ta || !badge) return;
+      const blocks = ta.value.trim().split(/\n\s*\n/).filter(b => b.split("\n").map(l => l.trim()).filter(Boolean).length >= 5);
+      const count = blocks.length;
+      badge.innerText = `${count} detected`;
+      badge.className = count > 0
+        ? "px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold"
+        : "px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[11px] font-bold";
+    }
+
     function fillSampleBulkText() {
       document.getElementById("bulkQuestionsInput").value = 
 `1. സസ്യങ്ങളിൽ പ്രകാശസംശ്ലേഷണത്തിന് ആവശ്യമായ സൗരോർജ്ജം ആഗിരണം ചെയ്യുന്നത് ഏത് ഘടകമാണ്?
@@ -68,6 +80,7 @@ C) കൂൺ (Mushroom)
 D) നെല്ല്
 Ans: C
 Exp: കൂൺ ഒരു ഫംഗസ് ആണ്. ഇതിന് ഹരിതകം ഇല്ലാത്തതിനാൽ സ്വന്തമായി ആഹാരം ഉണ്ടാക്കാൻ കഴിയില്ല.`;
+      updateBulkDetectedCount();
     }
 
     // Pure parser: turns bulk-format text into questions (no UI side effects)
