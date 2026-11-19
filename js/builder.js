@@ -28,11 +28,17 @@
     }
 
     function saveGeminiApiKey(val) {
-      if (val && val.trim()) {
-        localStorage.setItem("cmkids_gemini_api_key", val.trim());
-      } else {
+      const cleaned = val ? String(val).trim() : "";
+      if (!cleaned) {
         localStorage.removeItem("cmkids_gemini_api_key");
+        updateAiKeyStatusDisplay();
+        return;
       }
+      if (!cleaned.startsWith("AIza")) {
+        alert("That does not look like a valid Gemini API key (keys start with AIza).");
+        return;
+      }
+      localStorage.setItem("cmkids_gemini_api_key", cleaned);
       updateAiKeyStatusDisplay();
     }
 

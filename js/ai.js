@@ -70,8 +70,9 @@
     // Generic Gemini call (optional Google Search tool, tries each model in turn)
     // ------------------------------------------------------------
     async function callGemini({ parts, models, tools, temperature, timeoutSeconds }) {
-      const apiKey = localStorage.getItem("cmkids_gemini_api_key") || cloudGeminiApiKey;
-      if (!apiKey) return { text: null, error: "Gemini API key is missing. Open Generate with AI > Override Key and paste your AIza... key." };
+      const rawApiKey = localStorage.getItem("cmkids_gemini_api_key") || cloudGeminiApiKey || "";
+const apiKey = String(rawApiKey).trim();
+if (!apiKey) return { text: null, error: "Gemini API key is missing. Open Generate with AI > Override Key and paste your AIza... key." };
 
       let lastError = "";
       for (const modelName of models) {
