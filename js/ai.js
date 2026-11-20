@@ -70,52 +70,62 @@
     // Generic Gemini call (optional Google Search tool, tries each model in turn)
     // ------------------------------------------------------------
     async function callGemini({ parts, models, tools, temperature, timeoutSeconds }) {
-      const rawApiKey = localStorage.getItem("cmkids_gemini_api_key") || cloudGeminiApiKey || "";
-const apiKey = String(rawApiKey).trim();
-if (!apiKey) return { text: null, error: "Gemini API key is missing. Open Generate with AI > Override Key and paste your AIza... key." };
+      const apiKey = (localStorage.getItem("cmkids_gemini_api_key") || cloudGeminiApiKey || "").trim();
+      if (!apiKey) return { text: null, error: "Gemini API key is missing. Open Generate with AI > Override Key and paste your AIza... key." };
 
+      const sleep = ms => new Promise(r => setTimeout(r, ms));
       let lastError = "";
-      for (const modelName of models) {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), (timeoutSeconds || 60) * 1000);
-        try {
-          incrementTodayAiUsageCount();
-          const body = {
-            contents: [{ role: "user", parts }],
-            generationConfig: { temperature: temperature === undefined ? 0.2 : temperature }
-          };
-          if (tools) body.tools = tools;
 
-          const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`,
-            {
-              method: "POST",
-              signal: controller.signal,
-              headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
-              body: JSON.stringify(body)
+      for (let attempt = 0; attempt < 2; attempt++) {
+        if (attempt > 0) await sleep(2500 * attempt);
+        for (const modelName of models) {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), (timeoutSeconds || 60) * 1000);
+          try {
+            incrementTodayAiUsageCount();
+            const body = {
+              contents: [{ role: "user", parts }],
+              generationConfig: { temperature: temperature === undefined ? 0.2 : temperature }
+            };
+            if (tools) body.tools = tools;
+
+            const response = await fetch(
+              `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`,
+              {
+                method: "POST",
+                signal: controller.signal,
+                headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+                body: JSON.stringify(body)
+              }
+            );
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+              const errData = await response.json().catch(() => ({}));
+              if (response.status === 429) {
+                lastError = "Rate limit reached (429). Wait a minute and try again.";
+                await sleep(1500);
+              } else if (response.status === 503) {
+                lastError = "Google AI servers are busy (503). Try again.";
+                await sleep(1500);
+              } else {
+                lastError = errData?.error?.message || `HTTP ${response.status}`;
+              }
+              continue;
             }
-          );
-          clearTimeout(timeoutId);
 
-          if (!response.ok) {
-            const errData = await response.json().catch(() => ({}));
-            if (response.status === 429) lastError = "Rate limit reached (429). Wait a minute and try again.";
-            else if (response.status === 503) lastError = "Google AI servers are busy (503). Try again.";
-            else lastError = errData?.error?.message || `HTTP ${response.status}`;
-            continue;
+            const data = await response.json();
+            const cand = data?.candidates?.[0];
+            const text = (cand?.content?.parts || []).map(p => p.text || "").join("");
+            if (!text.trim()) {
+              lastError = data?.promptFeedback?.blockReason ? `Blocked by Google (${data.promptFeedback.blockReason}).` : "Empty response from Gemini.";
+              continue;
+            }
+            return { text, error: null, finishReason: cand.finishReason || "", grounding: cand.groundingMetadata || null, model: modelName };
+          } catch (err) {
+            clearTimeout(timeoutId);
+            lastError = err.name === "AbortError" ? `Timed out after ${timeoutSeconds || 60}s. Try a smaller batch.` : err.message;
           }
-
-          const data = await response.json();
-          const cand = data?.candidates?.[0];
-          const text = (cand?.content?.parts || []).map(p => p.text || "").join("");
-          if (!text.trim()) {
-            lastError = data?.promptFeedback?.blockReason ? `Blocked by Google (${data.promptFeedback.blockReason}).` : "Empty response from Gemini.";
-            continue;
-          }
-          return { text, error: null, finishReason: cand.finishReason || "", grounding: cand.groundingMetadata || null, model: modelName };
-        } catch (err) {
-          clearTimeout(timeoutId);
-          lastError = err.name === "AbortError" ? `Timed out after ${timeoutSeconds || 60}s. Try a smaller batch.` : err.message;
         }
       }
       return { text: null, error: lastError || "AI request failed." };

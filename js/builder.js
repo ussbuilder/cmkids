@@ -432,6 +432,8 @@ Strict Requirements:
       document.getElementById("verifiedQuestionCount").innerText = draft.questions.length;
       refreshBuilderButtons();
       document.getElementById("scheduleActionBar").classList.remove("hidden");
+      const clearBtn = document.getElementById("btnClearLoadedQuestions");
+      if (clearBtn) clearBtn.classList.toggle("hidden", draft.questions.length === 0);
     }
 
     function syncSummaryToDraft() {
@@ -444,6 +446,27 @@ Strict Requirements:
       syncSummaryToDraft();
       currentAdminDraft.questions.splice(idx, 1);
       renderAdminEditor(currentAdminDraft);
+    }
+
+    function clearLoadedDraftQuestions() {
+      if (!currentAdminDraft || currentAdminDraft.questions.length === 0) return;
+      if (!confirm(`Clear all ${currentAdminDraft.questions.length} loaded question(s) from the editor without saving or publishing?`)) return;
+
+      currentAdminDraft = null;
+      document.getElementById("editSummaryPoints").value = "";
+      document.getElementById("questionsEditorContainer").innerHTML = `
+        <div class="text-center py-12 text-slate-400">
+          <p class="text-sm">Paste ready questions or generate with AI on the left to populate the editor.</p>
+        </div>
+      `;
+      document.getElementById("verifiedQuestionCount").innerText = "0";
+      document.getElementById("scheduleActionBar").classList.add("hidden");
+
+      const clearBtn = document.getElementById("btnClearLoadedQuestions");
+      if (clearBtn) clearBtn.classList.add("hidden");
+      const updateBtn = document.getElementById("btnUpdateExistingBank");
+      if (updateBtn) updateBtn.classList.add("hidden");
+      if (typeof clearVerifyReport === "function") clearVerifyReport();
     }
 
     async function saveDraftToQuestionBank() {
