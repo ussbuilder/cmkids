@@ -537,6 +537,7 @@ Strict Requirements:
     }
 
     function renderQuestionBank() {
+      if (typeof renderLiveExamBanners === "function") renderLiveExamBanners();
       const grid = document.getElementById("questionBankGrid");
       grid.innerHTML = "";
 
@@ -585,7 +586,7 @@ Strict Requirements:
                     ? `<span class="ml-1 text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-600 text-white">LIVE</span>`
                     : `<span class="ml-1 text-[10px] font-bold px-2 py-0.5 rounded bg-slate-200 text-slate-600">ARCHIVED</span>`}
                   <h4 class="text-sm font-bold text-slate-900 mt-1">${escapeHtml(ex.title)}</h4>
-                  <p class="text-[11px] text-slate-500">${ex.questions.length} MCQs • ${ex.durationMinutes} Mins • ${escapeHtml(fmtDate(ex.createdAt))}</p>
+                  <p class="text-[11px] text-slate-500">${ex.questions.length} MCQs • ${ex.durationMinutes} Mins • Published ${escapeHtml(fmtDateTime(ex.createdAt))}</p>
                 </div>
               </div>
               <div class="flex items-center gap-2">

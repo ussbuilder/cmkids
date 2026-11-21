@@ -204,7 +204,7 @@
       const examRows = allExams.map(e => {
         const st = examStats.get(e.id);
         return `<tr class="hover:bg-slate-50">
-          <td class="p-2.5 whitespace-nowrap">${escapeHtml(fmtDate(e.createdAt))}</td>
+          <td class="p-2.5 whitespace-nowrap">${escapeHtml(fmtDateTime(e.createdAt))}</td>
           <td class="p-2.5 font-bold text-slate-900">${escapeHtml(e.title)}</td>
           <td class="p-2.5">${escapeHtml(e.subject)}</td>
           <td class="p-2.5">${e.isActive
@@ -271,7 +271,7 @@
       box.innerHTML = `
         <div class="mt-4 p-4 rounded-2xl border border-blue-200 bg-blue-50/40">
           <div class="flex items-center justify-between mb-2">
-            <p class="text-sm font-black text-slate-900">${escapeHtml(ex.title)} <span class="text-xs font-semibold text-slate-500">(${escapeHtml(ex.subject)} • ${escapeHtml(fmtDate(ex.createdAt))})</span></p>
+            <p class="text-sm font-black text-slate-900">${escapeHtml(ex.title)} <span class="text-xs font-semibold text-slate-500">(${escapeHtml(ex.subject)} • Published ${escapeHtml(fmtDateTime(ex.createdAt))})</span></p>
             <button onclick="document.getElementById('anExamDetail').innerHTML=''" class="text-xs font-bold text-slate-500 hover:text-slate-800">Close ✕</button>
           </div>
           <div class="overflow-x-auto">

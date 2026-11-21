@@ -9,12 +9,14 @@
     // 8. MENTOR PORTAL: ATTENDANCE, MARKS & ANSWER SHEET VIEWER
     // ============================================================
     function setupMentorDashboard() {
+      if (typeof renderLiveExamBanners === "function") renderLiveExamBanners();
       const examSelect = document.getElementById("mentorExamFilter");
-      examSelect.innerHTML = `<option value="latest">Latest Exam (${escapeHtml(allExams[0]?.title || "None")})</option>`;
+      const liveExam = allExams.find(e => e.isActive) || allExams[0];
+      examSelect.innerHTML = `<option value="latest">${liveExam && liveExam.isActive ? "● LIVE" : "Latest"}: ${escapeHtml(liveExam?.title || "None")}</option>`;
       allExams.forEach(e => {
         const opt = document.createElement("option");
         opt.value = e.id;
-        opt.innerText = `${e.title} (${e.subject})`;
+        opt.innerText = `${e.isActive ? "● LIVE • " : ""}${e.title} (${e.subject} — ${fmtDateTime(e.createdAt)})`;
         examSelect.appendChild(opt);
       });
       renderMentorDashboard();
@@ -27,12 +29,15 @@
     }
 
     function renderMentorDashboard() {
+      if (typeof renderLiveExamBanners === "function") renderLiveExamBanners();
       const myMentees = getMentorActiveMentees();
       document.getElementById("mentorTotalMenteesCount").innerText = myMentees.length;
       renderMentorStudentPicker(myMentees);
 
       const filterVal = document.getElementById("mentorExamFilter").value;
-      const targetExam = filterVal === "latest" ? allExams[0] : allExams.find(e => e.id === filterVal);
+      const targetExam = filterVal === "latest"
+        ? (allExams.find(e => e.isActive) || allExams[0])
+        : allExams.find(e => e.id === filterVal);
 
       const tbody = document.getElementById("mentorMenteesTableBody");
       tbody.innerHTML = "";

@@ -49,11 +49,17 @@
       const live = allExams.filter(e => e.isActive).slice(0, 1);
       const liveIds = new Set(live.map(e => e.id));
       const enrolledAt = currentUser.created_at ? new Date(currentUser.created_at).getTime() : null;
-      const dues = allExams.filter(e =>
-        !liveIds.has(e.id) &&
-        !attempted.has(e.id) &&
-        (enrolledAt === null || !e.createdAt || new Date(e.createdAt).getTime() >= enrolledAt)
+      const seenKeys = new Set(
+        live.map(e => `${String(e.title || "").trim().toLowerCase()}|${e.subject}|${(e.questions || []).length}`)
       );
+      const dues = allExams.filter(e => {
+        if (liveIds.has(e.id) || attempted.has(e.id)) return false;
+        if (enrolledAt !== null && e.createdAt && new Date(e.createdAt).getTime() < enrolledAt) return false;
+        const sig = `${String(e.title || "").trim().toLowerCase()}|${e.subject}|${(e.questions || []).length}`;
+        if (seenKeys.has(sig)) return false;
+        seenKeys.add(sig);
+        return true;
+      });
       return [
         ...live.filter(e => !attempted.has(e.id)).map(e => ({ exam: e, isLive: true })),
         ...dues.map(e => ({ exam: e, isLive: false }))
