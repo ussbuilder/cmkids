@@ -32,8 +32,18 @@
       document.getElementById("bannerStudentBatch").innerText = `Batch ${currentUser.batch_year || "2026-27"}`;
       document.getElementById("bannerStudentWelcome").innerText = `Welcome, ${currentUser.full_name}!`;
 
+      const mentorEl = document.getElementById("studentAssignedMentorDisplay");
       const mentor = allProfiles.find(m => m.id === currentUser.mentor_id);
-      document.getElementById("studentAssignedMentorDisplay").innerText = mentor ? `Mentor: ${escapeHtml(mentor.full_name)}` : "Mentor: General School Pool";
+      if (mentor && mentor.full_name) {
+        mentorEl.innerText = `Mentor: ${mentor.full_name}`;
+      } else if (currentUser.mentor_id && supabaseClient) {
+        mentorEl.innerText = "Mentor: Loading...";
+        supabaseClient.rpc("get_my_mentor_name").then(({ data }) => {
+          mentorEl.innerText = data ? `Mentor: ${data}` : "Mentor: General School Pool";
+        });
+      } else {
+        mentorEl.innerText = "Mentor: General School Pool";
+      }
 
       updateStudentBanner();
 
