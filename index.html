@@ -168,16 +168,17 @@
     <!-- ========================================== -->
     <div id="adminView" class="hidden space-y-8">
       
-      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div>
-          <div class="flex items-center space-x-2">
-            <h2 class="text-xl font-black text-slate-900">Admin Control Center</h2>
-            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
-              Active Batch: <span id="activeBatchBadge">2026-27</span>
-            </span>
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center space-x-2">
+              <h2 class="text-xl font-black text-slate-900">Admin Control Center</h2>
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+                Active Batch: <span id="activeBatchBadge">2026-27</span>
+              </span>
+            </div>
+            <p class="text-xs text-slate-500 mt-0.5">Manage batches, upload school Excel register, assign mentors, and schedule daily mock exams.</p>
           </div>
-          <p class="text-xs text-slate-500 mt-0.5">Manage batches, upload school Excel register, assign mentors, and schedule daily mock exams.</p>
-        </div>
 
         <div class="flex flex-wrap items-center gap-2">
           <button onclick="switchAdminTab('enrollment')" id="tabBtnEnrollment" class="px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-blue-600 text-white shadow-sm transition">
@@ -196,6 +197,8 @@
             Analytics
           </button>
         </div>
+        </div>
+        <div id="adminLiveExamBanner"></div>
       </div>
 
       <!-- ======================================================== -->
@@ -848,17 +851,20 @@
     <!-- ========================================== -->
     <div id="mentorView" class="hidden space-y-8">
       
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 gap-4">
-        <div>
-          <h2 class="text-xl font-bold text-slate-900">Mentor Performance & Attendance Portal</h2>
-          <p class="text-sm text-slate-500">Check exam attendance, marks, and complete answer sheets for your assigned mentees.</p>
+      <div class="space-y-4 pb-4 border-b border-slate-200">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-xl font-bold text-slate-900">Mentor Performance & Attendance Portal</h2>
+            <p class="text-sm text-slate-500">Check exam attendance, marks, and complete answer sheets for your assigned mentees.</p>
+          </div>
+          <div class="flex items-center space-x-2">
+            <label class="text-xs font-bold text-slate-600">Select Exam:</label>
+            <select id="mentorExamFilter" onchange="renderMentorDashboard()" class="text-xs font-bold rounded-xl border-slate-300 bg-white border px-3 py-2">
+              <option value="all">All Exams</option>
+            </select>
+          </div>
         </div>
-        <div class="flex items-center space-x-2">
-          <label class="text-xs font-bold text-slate-600">Select Exam:</label>
-          <select id="mentorExamFilter" onchange="renderMentorDashboard()" class="text-xs font-bold rounded-xl border-slate-300 bg-white border px-3 py-2">
-            <option value="all">All Exams</option>
-          </select>
-        </div>
+        <div id="mentorLiveExamBanner"></div>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
