@@ -277,7 +277,7 @@
         examBtn.className = "px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 text-white shadow-sm transition";
         customBtn.className = "px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition";
         ta.value =
-`Assalamu Alaikum / Hello {name},
+`Hello {name},
 
 📢 *New CMKids Scholarship Mock Exam is Live!*
 📝 *Exam:* {exam}
